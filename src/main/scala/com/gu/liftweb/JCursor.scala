@@ -4,12 +4,12 @@ import scala.annotation.tailrec
 import net.liftweb.json.JsonAST._
 import scalaz.Functor
 import JValueSyntax._
+import JCursor._
 
 
 /** Represents a position within a JValue structure, comprising a value under the cursor (the focus) and a context.
   */
-final case class JCursor(focus: JValue, context: JContext) {
-  import JCursor._
+final case class JCursor(focus: JValue, path: Path) {
 
   def replace(newFocus: JValue): JCursor =
     copy(focus = newFocus)
@@ -24,42 +24,42 @@ final case class JCursor(focus: JValue, context: JContext) {
     Functor[F].map(f(focus))(replace)
 
   def deleteGoUp: Option[JCursor] =
-    context match {
-      case ArrayCtx(lefts, rights, parent) => Some(JCursor(JArray(cat(lefts, rights)), parent))
-      case ObjectCtx(lefts, rights, parent) => Some(JCursor(JObject(cat(lefts, rights)), parent))
-      case FieldCtx(name, ObjectCtx(lefts, rights, parent)) => Some(JCursor(JObject(cat(lefts, rights)), parent))
+    path match {
+      case InArray(lefts, rights) :: p => Some(JCursor(JArray(cat(lefts, rights)), p))
+      case InObject(lefts, rights) :: p => Some(JCursor(JObject(cat(lefts, rights)), p))
+      case InField(name) :: InObject(lefts, rights) :: p => Some(JCursor(JObject(cat(lefts, rights)), p))
       case _ => None
     }
 
   def deleteGoRight: Option[JCursor] =
-    context match {
-      case c @ ArrayCtx(ls, r::rs, parent) => Some(JCursor(r, c.copy(rights = rs)))
+    path match {
+      case InArray(ls, r::rs) :: p => Some(JCursor(r, InArray(ls, rs) :: p))
       case _ => None
     }
 
   def insertLeft(newElem: JValue): Option[JCursor] =
-    context match {
-      case c @ ArrayCtx(ls, rs, parent) => Some(JCursor(newElem, c.copy(rights = focus::rs)))
+    path match {
+      case InArray(ls, rs) :: p => Some(JCursor(newElem, InArray(ls, focus::rs) :: p))
       case _ => None
     }
 
   def left: Option[JCursor] =
-    context match {
-      case ArrayCtx(l::ls, rs, parent)  => Some(JCursor(l, ArrayCtx(ls, focus::rs, parent)))
+    path match {
+      case InArray(l::ls, rs) :: p  => Some(JCursor(l, InArray(ls, focus::rs) :: p))
       case _ => None
     }
 
   def right: Option[JCursor] =
-    context match {
-      case ArrayCtx(ls, r::rs, parent) => Some(JCursor(r, ArrayCtx(focus::ls, rs, parent)))
+    path match {
+      case InArray(ls, r::rs) :: p => Some(JCursor(r, InArray(focus::ls, rs) :: p))
       case _ => None
     }
 
   def findLeft(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] = {
     val p: JValue => Boolean = pfn orElse { case _ => false }
-    context match {
-      case ArrayCtx(ls, rs, parent)  => ls.span(l => !p(l)) match {
-        case (xs, newFocus::ls) => Some(JCursor(newFocus, ArrayCtx(ls, cat(xs, rs), parent)))
+    path match {
+      case InArray(ls, rs) :: path  => ls.span(l => !p(l)) match {
+        case (xs, newFocus::ls) => Some(JCursor(newFocus, InArray(ls, cat(xs, rs)) :: path))
         case _ => None
       }
       case _ => None
@@ -68,18 +68,18 @@ final case class JCursor(focus: JValue, context: JContext) {
 
   def firstChild: Option[JCursor] =
     focus match {
-      case JArray(x::xs) => Some(JCursor(x, ArrayCtx(Nil, xs, context)))
-      case JObject(JField(name, value)::xs) => Some(JCursor(value, FieldCtx(name, ObjectCtx(Nil, xs, context))))
+      case JArray(x::xs) => Some(JCursor(x, InArray(Nil, xs) :: path))
+      case JObject(JField(name, value)::xs) => Some(JCursor(value, InField(name) :: InObject(Nil, xs) :: path))
       case _ => None
     }
 
   @tailrec
   def up: Option[JCursor] =
-    context match {
-      case RootCtx => None
-      case ArrayCtx(lefts, rights, parent) => Some(JCursor(JArray(cat(lefts, focus::rights)), parent))
-      case ObjectCtx(lefts, rights, parent) => focus.toJField map (f => JCursor(JObject(cat(lefts, f::rights)), parent))
-      case FieldCtx(name, parent) => JCursor(JField(name, focus), parent).up
+    path match {
+      case Nil => None
+      case InArray(lefts, rights) :: p => Some(JCursor(JArray(cat(lefts, focus::rights)), p))
+      case InObject(lefts, rights) :: p => focus.toJField map (f => JCursor(JObject(cat(lefts, f::rights)), p))
+      case InField(name) :: p => JCursor(JField(name, focus), p).up
     }
 
   def keySet: Option[Set[String]] =
@@ -90,7 +90,7 @@ final case class JCursor(focus: JValue, context: JContext) {
   def field(name: String): Option[JCursor] =
     focus match {
       case JObject(fields) => fields.span(_.name != name) match {
-        case (ls, JField(n, newFocus)::rs) => Some(JCursor(newFocus, FieldCtx(n, ObjectCtx(ls, rs, context))))
+        case (ls, JField(n, newFocus)::rs) => Some(JCursor(newFocus, InField(n) :: InObject(ls, rs) :: path))
         case _ => None
       }
       case _ => None
@@ -98,19 +98,19 @@ final case class JCursor(focus: JValue, context: JContext) {
 
   def insertChildField(name: String, value: JValue): Option[JCursor] =
     focus match {
-      case JObject(fields) => Some(JCursor(value, FieldCtx(name, ObjectCtx(Nil, fields, context))))
+      case JObject(fields) => Some(JCursor(value, InField(name) :: InObject(Nil, fields) :: path))
       case _ => None
     }
 
   def sibling(name: String): Option[JCursor] =
-    context match {
-      case FieldCtx(_, _) => up flatMap (_.field(name))
+    path match {
+      case InField(_) :: _ => up flatMap (_.field(name))
       case _ => None
     }
 
   def insertSibling(name: String, value: JValue): Option[JCursor] =
-    context match {
-      case FieldCtx(_, _) => up flatMap (_.insertChildField(name, value))
+    path match {
+      case InField(_) :: _ => up flatMap (_.insertChildField(name, value))
       case _ => None
     }
 
@@ -129,8 +129,8 @@ object JCursor {
 
   def fromJValue(jValue: JValue): JCursor =
     jValue match {
-      case JField(name, value) => JCursor(value, FieldCtx(name, RootCtx))
-      case value => JCursor(value, RootCtx)
+      case JField(name, value) => JCursor(value, InField(name) :: Nil)
+      case value => JCursor(value, Nil)
     }
 
   @tailrec
@@ -140,16 +140,14 @@ object JCursor {
       case x::xs => cat(xs, x::rights)
     }
 
+  type Path = List[PathElem]
+
+  sealed trait PathElem
+
+  case class InArray(lefts: List[JValue], rights: List[JValue]) extends PathElem
+
+  case class InObject(lefts: List[JField], rights: List[JField]) extends PathElem
+
+  case class InField(name: String) extends PathElem
+
 }
-
-
-sealed trait JContext
-
-case object RootCtx extends JContext
-
-case class ArrayCtx(lefts: List[JValue], rights: List[JValue], parent: JContext) extends JContext
-
-case class ObjectCtx(lefts: List[JField], rights: List[JField], parent: JContext) extends JContext
-
-case class FieldCtx(name: String, parent: JContext) extends JContext
-
