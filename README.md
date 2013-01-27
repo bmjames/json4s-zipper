@@ -25,9 +25,18 @@ Basic zipper API
       "soups":["borscht","goulash","gumbo","minestrone"]
     }
 
-CursorCommand DSL
+CursorCommand API
 -----------------
 
-See [CursorCommandExamples][1].
+    scala> import scalaz.Scalaz._, com.gu.liftweb.CursorCommand._
+
+    scala> val cmd = field("soups") >> firstChild >> insertLeft(JString("borscht"))
+
+    scala> println(pretty(render(json execDefault cmd)))
+    {
+      "soups":["borscht","goulash","gumbo","minestrone"]
+    }
+
+See [CursorCommandExamples][1] for more examples.
 
 [1]: https://github.com/bmjames/lift-json-zipper/blob/master/src/test/scala/com/gu/liftweb/CursorCommandExamples.scala
