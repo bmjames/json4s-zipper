@@ -48,6 +48,8 @@ object CursorCommand {
 
   def insertLeft(elem: JValue): CursorCommand[JValue] = returnFocusOpt(_.insertLeft(elem))
 
+  def insertRight(elem: JValue): CursorCommand[JValue] = returnFocusOpt(_.insertRight(elem))
+
   def left: CursorCommand[JValue] = returnFocusOpt(_.left)
 
   def leftN(n: Int): CursorCommand[JValue] =

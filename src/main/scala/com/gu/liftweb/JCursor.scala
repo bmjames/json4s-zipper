@@ -41,6 +41,11 @@ final case class JCursor(focus: JValue, path: Path) {
       case InArray(ls, rs) :: p => JCursor(newElem, InArray(ls, focus::rs) :: p)
     }
 
+  def insertRight(newElem: JValue): Option[JCursor] =
+    condOpt(path) {
+      case InArray(ls, rs) :: p => JCursor(newElem, InArray(focus::ls, rs) :: p)
+    }
+
   def left: Option[JCursor] =
     condOpt(path) {
       case InArray(l::ls, rs) :: p  => JCursor(l, InArray(ls, focus::rs) :: p)
