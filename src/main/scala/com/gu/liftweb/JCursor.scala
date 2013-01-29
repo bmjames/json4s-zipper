@@ -27,7 +27,6 @@ final case class JCursor(focus: JValue, path: Path) {
   def deleteGoUp: Option[JCursor] =
     condOpt(path) {
       case InArray(lefts, rights) :: p => JCursor(JArray(cat(lefts, rights)), p)
-      case InObject(lefts, rights) :: p => JCursor(JObject(cat(lefts, rights)), p)
       case InField(name) :: InObject(lefts, rights) :: p => JCursor(JObject(cat(lefts, rights)), p)
     }
 
