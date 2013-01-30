@@ -84,7 +84,7 @@ object CursorCommand {
   def getFocus: CursorCommand[JValue] = monadState.init map (_.focus)
 
   def orElse[A](a: CursorCommand[A], b: => CursorCommand[A]): CursorCommand[A] =
-    a <+> b
+    CursorCommand(cursor => a(cursor) orElse b(cursor))
 
   def having[A, B](ca: CursorCommand[A], cb: => CursorCommand[B]): CursorCommand[A] =
     for {
@@ -107,9 +107,9 @@ object CursorCommand {
    */
   implicit val cursorCommandMonadPlus: MonadPlus[CursorCommand] = new MonadPlus[CursorCommand] {
 
-    def plus[A](a: CursorCommand[A], b: => CursorCommand[A]) = CursorCommand(cursor => a(cursor) orElse b(cursor))
+    def plus[A](a: CursorCommand[A], b: => CursorCommand[A]) = orElse(a, b)
 
-    def empty[A] = CursorCommand(cursor => None)
+    def empty[A] = CursorCommand(_ => None)
 
     def point[A](a: => A) = CursorCommand(cursor => Some(cursor, a))
 
