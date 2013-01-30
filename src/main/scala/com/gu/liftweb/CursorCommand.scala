@@ -46,6 +46,8 @@ object CursorCommand {
   def insertSibling(name: String, value: JValue): CursorCommand[JValue] =
     returnFocusOpt(_.insertSibling(name, value))
 
+  def rename(name: String): CursorCommand[JValue] = returnFocusOpt(_.rename(name))
+
   def insertLeft(elem: JValue): CursorCommand[JValue] = returnFocusOpt(_.insertLeft(elem))
 
   def insertRight(elem: JValue): CursorCommand[JValue] = returnFocusOpt(_.insertRight(elem))
@@ -93,6 +95,14 @@ object CursorCommand {
       _ <- cb
       _ <- monadState.put(s)
     } yield a
+
+  def eachChild[A](cmd: CursorCommand[A]): CursorCommand[JArray] =
+    for {
+      JArray(children) <- getFocus
+      Some(cs) <- children.traverse(c => cmd.exec(JCursor.fromJValue(c)).map(_.toJValue)).point[CursorCommand]
+      newFocus = JArray(cs)
+      _ <- replace(newFocus)
+    } yield newFocus
 
   implicit def toCursorCommandOps[A](command: CursorCommand[A]): CursorCommandOps[A] =
     new CursorCommandOps(command)

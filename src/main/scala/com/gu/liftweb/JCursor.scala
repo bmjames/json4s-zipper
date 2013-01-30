@@ -110,6 +110,11 @@ final case class JCursor(focus: JValue, path: Path) {
       case _ => None
     }
 
+  def rename(name: String): Option[JCursor] =
+    condOpt(path) {
+      case InField(_) :: p => copy(path = InField(name) :: p)
+    }
+
   @tailrec
   def root: JCursor =
     up match {

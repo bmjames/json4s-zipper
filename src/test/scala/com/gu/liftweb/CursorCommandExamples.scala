@@ -118,4 +118,26 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
   }
 
+  test("`eachChild` execs the supplied command on each of an array's child elements") {
+
+    val renameAssetTypes = field("assets") >> eachChild(field("type") >> rename("mimeType"))
+
+    json exec renameAssetTypes should be (Some(parse("""
+      {
+        "type":"image",
+        "assets":[
+          {
+            "mimeType":"image/jpeg",
+            "file":"foo.jpg"
+          },
+          {
+            "mimeType":"image/png",
+            "file":"foo.png"
+          }
+        ]
+      }
+      """)))
+
+  }
+
 }
