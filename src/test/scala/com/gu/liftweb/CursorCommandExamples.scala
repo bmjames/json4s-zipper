@@ -14,20 +14,20 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
   val json = parse(
     """
-      |{
-      |  "type":"image",
-      |  "assets":[
-      |    {
-      |      "type":"image/jpeg",
-      |      "file":"foo.jpg"
-      |    },
-      |    {
-      |      "type":"image/png",
-      |      "file":"foo.png"
-      |    }
-      |  ]
-      |}
-    """.stripMargin)
+      {
+        "type":"image",
+        "assets":[
+          {
+            "type":"image/jpeg",
+            "file":"foo.jpg"
+          },
+          {
+            "type":"image/png",
+            "file":"foo.png"
+          }
+        ]
+      }
+    """)
 
   // Counts the number of assets and then uses that data to insert a new field, assetCount
   val addAssetCount =
@@ -40,21 +40,21 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
     json exec addAssetCount should equal (Some(parse(
       """
-        |{
-        |  "assetCount": 2,
-        |  "type":"image",
-        |  "assets":[
-        |    {
-        |      "type":"image/jpeg",
-        |      "file":"foo.jpg"
-        |    },
-        |    {
-        |      "type":"image/png",
-        |      "file":"foo.png"
-        |    }
-        |  ]
-        |}
-      """.stripMargin)))
+        {
+          "assetCount": 2,
+          "type":"image",
+          "assets":[
+            {
+              "type":"image/jpeg",
+              "file":"foo.jpg"
+            },
+            {
+              "type":"image/png",
+              "file":"foo.png"
+            }
+          ]
+        }
+      """)))
   }
 
   val deleteFirstAsset = field("assets") >> firstChild >> deleteGoUp
@@ -63,16 +63,16 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
     json execDefault deleteFirstAsset should equal (parse(
       """
-        |{
-        |  "type":"image",
-        |  "assets":[
-        |    {
-        |      "type":"image/png",
-        |      "file":"foo.png"
-        |    }
-        |  ]
-        |}
-      """.stripMargin))
+        {
+          "type":"image",
+          "assets":[
+            {
+              "type":"image/png",
+              "file":"foo.png"
+            }
+          ]
+        }
+      """))
   }
 
   val failingCommand = field("assets") >> firstChild >> left
@@ -88,11 +88,11 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
     json eval moveFocus should equal (Some(parse(
       """
-        |{
-        |  "type":"image/jpeg",
-        |  "file":"foo.jpg"
-        |}
-      """.stripMargin)))
+        {
+          "type":"image/jpeg",
+          "file":"foo.jpg"
+        }
+      """)))
   }
 
   val commandWithRetry = field("flibbles") orElse field("assets") >> child(1)
@@ -101,11 +101,11 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
     json eval commandWithRetry should equal (Some(parse(
       """
-        | {
-        |   "type":"image/png",
-        |   "file":"foo.png"
-        | }
-      """.stripMargin)))
+        {
+          "type":"image/png",
+          "file":"foo.png"
+        }
+      """)))
   }
 
   test("`having` passes if the predicate command on the r.h.s. succeeds, preserving l.h.s. state and value") {
