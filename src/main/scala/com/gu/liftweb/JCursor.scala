@@ -26,8 +26,8 @@ final case class JCursor(focus: JValue, path: Path) {
 
   def deleteGoUp: Option[JCursor] =
     condOpt(path) {
-      case InArray(lefts, rights) :: p => JCursor(JArray(cat(lefts, rights)), p)
-      case InField(name) :: InObject(lefts, rights) :: p => JCursor(JObject(cat(lefts, rights)), p)
+      case InArray(lefts, rights) :: p => JCursor(JArray(lefts reverse_::: rights), p)
+      case InField(name) :: InObject(lefts, rights) :: p => JCursor(JObject(lefts reverse_::: rights), p)
     }
 
   def deleteGoRight: Option[JCursor] =
@@ -58,7 +58,7 @@ final case class JCursor(focus: JValue, path: Path) {
   def findLeft(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
     path match {
       case InArray(ls, rs) :: path  => ls.span(l => ! cond(l)(pfn)) match {
-        case (xs, newFocus::ls) => Some(JCursor(newFocus, InArray(ls, cat(xs, rs)) :: path))
+        case (xs, newFocus::ls) => Some(JCursor(newFocus, InArray(ls, xs reverse_::: rs) :: path))
         case _ => None
       }
       case _ => None
@@ -74,8 +74,8 @@ final case class JCursor(focus: JValue, path: Path) {
   def up: Option[JCursor] =
     path match {
       case Nil => None
-      case InArray(lefts, rights) :: p => Some(JCursor(JArray(cat(lefts, focus::rights)), p))
-      case InObject(lefts, rights) :: p => focus.toJField map (f => JCursor(JObject(cat(lefts, f::rights)), p))
+      case InArray(lefts, rights) :: p => Some(JCursor(JArray(lefts reverse_::: (focus::rights)), p))
+      case InObject(lefts, rights) :: p => focus.toJField map (f => JCursor(JObject(lefts reverse_::: (f::rights)), p))
       case InField(name) :: p => JCursor(JField(name, focus), p).up
     }
 
@@ -132,13 +132,6 @@ object JCursor {
     jValue match {
       case JField(name, value) => JCursor(value, InField(name) :: Nil)
       case value => JCursor(value, Nil)
-    }
-
-  @tailrec
-  protected def cat[A](lefts: List[A], rights: List[A]): List[A] =
-    lefts match {
-      case Nil => rights
-      case x::xs => cat(xs, x::rights)
     }
 
   type Path = List[PathElem]
