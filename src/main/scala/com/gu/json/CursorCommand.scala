@@ -1,6 +1,6 @@
-package com.gu.liftweb
+package com.gu.json
 
-import net.liftweb.json.JsonAST._
+import org.json4s.JsonAST._
 import scalaz.Scalaz._
 import scalaz.{MonadState, MonadPlus, StateT}
 

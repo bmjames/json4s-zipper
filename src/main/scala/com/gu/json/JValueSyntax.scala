@@ -1,7 +1,7 @@
-package com.gu.liftweb
+package com.gu.json
 
-import net.liftweb.json.JsonAST.{JInt, JString, JValue, JField}
-import net.liftweb.json.{pretty, render}
+import org.json4s.JsonAST.{JInt, JString, JValue, JField}
+import org.json4s.native.JsonMethods._
 import scalaz.Scalaz._
 import CursorCommand._
 
@@ -18,11 +18,6 @@ final class JValueOps(value: JValue) {
 
   def execDefault(command: CursorCommand[_]): JValue =
     exec(command) getOrElse value
-
-  def toJField: Option[JField] = value match {
-    case j @ JField(_, _) => Some(j)
-    case _ => None
-  }
 
   def stringValue: Option[String] = value match {
     case JString(string) => Some(string)

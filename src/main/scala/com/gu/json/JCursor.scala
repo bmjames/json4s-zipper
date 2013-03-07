@@ -1,8 +1,8 @@
-package com.gu.liftweb
+package com.gu.json
 
 import scala.annotation.tailrec
 import scala.PartialFunction._
-import net.liftweb.json.JsonAST._
+import org.json4s.JsonAST._
 import scalaz.Functor
 import JValueSyntax._
 import JCursor._
@@ -27,7 +27,7 @@ final case class JCursor(focus: JValue, path: Path) {
   def deleteGoUp: Option[JCursor] =
     condOpt(path) {
       case InArray(lefts, rights) :: p => JCursor(JArray(lefts reverse_::: rights), p)
-      case InField(name) :: InObject(lefts, rights) :: p => JCursor(JObject(lefts reverse_::: rights), p)
+      case InObject(_, lefts, rights) :: p => JCursor(JObject(lefts reverse_::: rights), p)
     }
 
   def deleteGoRight: Option[JCursor] =
@@ -67,27 +67,24 @@ final case class JCursor(focus: JValue, path: Path) {
   def firstChild: Option[JCursor] =
     condOpt(focus) {
       case JArray(x::xs) => JCursor(x, InArray(Nil, xs) :: path)
-      case JObject(JField(name, value)::xs) => JCursor(value, InField(name) :: InObject(Nil, xs) :: path)
+      case JObject(JField(name, value)::xs) => JCursor(value, InObject(name, Nil, xs) :: path)
     }
 
-  @tailrec
   def up: Option[JCursor] =
-    path match {
-      case Nil => None
-      case InArray(lefts, rights) :: p => Some(JCursor(JArray(lefts reverse_::: (focus::rights)), p))
-      case InObject(lefts, rights) :: p => focus.toJField map (f => JCursor(JObject(lefts reverse_::: (f::rights)), p))
-      case InField(name) :: p => JCursor(JField(name, focus), p).up
+    condOpt(path) {
+      case InArray(lefts, rights) :: p => JCursor(JArray(lefts reverse_::: (focus::rights)), p)
+      case InObject(name, lefts, rights) :: p => JCursor(JObject(lefts reverse_::: (JField(name, focus)::rights)), p)
     }
 
   def keySet: Option[Set[String]] =
     condOpt(focus) {
-      case JObject(fields) => fields.map(_.name).toSet
+      case JObject(fields) => fields.map(_._1).toSet
     }
 
   def field(name: String): Option[JCursor] =
     focus match {
-      case JObject(fields) => fields.span(_.name != name) match {
-        case (ls, JField(n, newFocus)::rs) => Some(JCursor(newFocus, InField(n) :: InObject(ls, rs) :: path))
+      case JObject(fields) => fields.span(_._1 != name) match {
+        case (ls, JField(n, newFocus)::rs) => Some(JCursor(newFocus, InObject(n, ls, rs) :: path))
         case _ => None
       }
       case _ => None
@@ -95,24 +92,24 @@ final case class JCursor(focus: JValue, path: Path) {
 
   def insertChildField(name: String, value: JValue): Option[JCursor] =
     condOpt(focus) {
-      case JObject(fields) => JCursor(value, InField(name) :: InObject(Nil, fields) :: path)
+      case JObject(fields) => JCursor(value, InObject(name, Nil, fields) :: path)
     }
 
   def sibling(name: String): Option[JCursor] =
     path match {
-      case InField(_) :: _ => up flatMap (_.field(name))
+      case InObject(_, _, _) :: _ => up flatMap (_.field(name))
       case _ => None
     }
 
   def insertSibling(name: String, value: JValue): Option[JCursor] =
     path match {
-      case InField(_) :: _ => up flatMap (_.insertChildField(name, value))
+      case InObject(_, _, _) :: _ => up flatMap (_.insertChildField(name, value))
       case _ => None
     }
 
   def rename(name: String): Option[JCursor] =
     condOpt(path) {
-      case InField(_) :: p => copy(path = InField(name) :: p)
+      case InObject(_, ls, rs) :: p => copy(path = InObject(name, ls, rs) :: p)
     }
 
   @tailrec
@@ -128,11 +125,7 @@ final case class JCursor(focus: JValue, path: Path) {
 
 object JCursor {
 
-  def fromJValue(jValue: JValue): JCursor =
-    jValue match {
-      case JField(name, value) => JCursor(value, InField(name) :: Nil)
-      case value => JCursor(value, Nil)
-    }
+  def fromJValue(jValue: JValue): JCursor = JCursor(jValue, Nil)
 
   type Path = List[PathElem]
 
@@ -140,8 +133,6 @@ object JCursor {
 
   case class InArray(lefts: List[JValue], rights: List[JValue]) extends PathElem
 
-  case class InObject(lefts: List[JField], rights: List[JField]) extends PathElem
-
-  case class InField(name: String) extends PathElem
+  case class InObject(fieldName: String, lefts: List[JField], rights: List[JField]) extends PathElem
 
 }

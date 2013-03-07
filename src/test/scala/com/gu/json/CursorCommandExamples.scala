@@ -1,8 +1,9 @@
-package com.gu.liftweb
+package com.gu.json
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
-import net.liftweb.json._
+import org.json4s._
+import org.json4s.native.JsonMethods._
 import scalaz.Scalaz._
 
 import CursorCommand._

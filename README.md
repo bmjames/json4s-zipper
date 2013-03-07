@@ -1,12 +1,12 @@
-lift-json-zipper
-================
+json4s-zipper
+=============
 
-A experimental zipper library for lift-json
+A experimental zipper library for the [json4s][1] AST.
 
 Basic zipper API
 ----------------
 
-    scala> import net.liftweb.json._, com.gu.liftweb.JValueSyntax._
+    scala> import org.json4s.native.JsonMethods._, com.gu.json.JValueSyntax._
 
     scala> val json = parse("""
          |   {
@@ -28,7 +28,7 @@ Basic zipper API
 CursorCommand API
 -----------------
 
-    scala> import scalaz.Scalaz._, com.gu.liftweb.CursorCommand._
+    scala> import scalaz.Scalaz._, com.gu.json.CursorCommand._
 
     scala> val cmd = field("soups") >> firstChild >> insertLeft(JString("borscht"))
 
@@ -37,6 +37,7 @@ CursorCommand API
       "soups":["borscht","goulash","gumbo","minestrone"]
     }
 
-See [CursorCommandExamples][1] for more examples.
+See [CursorCommandExamples][2] for more examples.
 
-[1]: https://github.com/bmjames/lift-json-zipper/blob/master/src/test/scala/com/gu/liftweb/CursorCommandExamples.scala
+[1]: http://json4s.org/
+[2]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/CursorCommandExamples.scala
