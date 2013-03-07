@@ -28,7 +28,7 @@ Basic zipper API
 CursorCommand API
 -----------------
 
-    scala> import scalaz.Scalaz._, com.gu.json.CursorCommand._
+    scala> import scalaz.Scalaz._, com.gu.json.CursorCommand._, org.json4s.JsonAST._
 
     scala> val cmd = field("soups") >> firstChild >> insertLeft(JString("borscht"))
 
