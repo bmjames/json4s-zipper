@@ -9,6 +9,9 @@ final class JValueOps(value: JValue) {
 
   def cursor: JCursor = JCursor.fromJValue(value)
 
+  def removeAt[A](command: CursorCommand[A]): JValue =
+    execDefault(command >> deleteGoUp)
+
   def eval[A](command: CursorCommand[A]): Option[A] =
     command.eval(cursor)
 

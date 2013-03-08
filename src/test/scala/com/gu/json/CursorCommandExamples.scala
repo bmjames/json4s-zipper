@@ -141,4 +141,23 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
   }
 
+  test("`remove` syntax  on a JValue removes the element reached by a series of cursor movements") {
+
+    json.removeAt(field("assets") >> child(1) >> field("file")) should be (parse("""
+      {
+        "type":"image",
+        "assets":[
+          {
+            "type":"image/jpeg",
+            "file":"foo.jpg"
+          },
+          {
+            "type":"image/png"
+          }
+        ]
+      }
+    """))
+
+  }
+
 }
