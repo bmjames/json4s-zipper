@@ -1,7 +1,6 @@
 package com.gu.json
 
-import org.json4s.JsonAST.{JInt, JString, JValue, JField}
-import org.json4s.native.JsonMethods._
+import org.json4s.JsonAST.{JInt, JString, JValue}
 import scalaz.Scalaz._
 import CursorCommand._
 
@@ -28,8 +27,6 @@ final class JValueOps(value: JValue) {
     case JInt(int) => Some(int)
     case _ => None
   }
-
-  def prettyRender: String = pretty(render(value))
 
 }
 
