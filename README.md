@@ -25,10 +25,10 @@ Basic zipper API
       "soups":["borscht","goulash","gumbo","minestrone"]
     }
 
-CursorCommand API
+CursorState API
 -----------------
 
-    scala> import scalaz.Scalaz._, com.gu.json.CursorCommand._, org.json4s.JsonAST._
+    scala> import scalaz.Scalaz._, com.gu.json.CursorState._, org.json4s.JsonAST._
 
     scala> val cmd = field("soups") >> firstChild >> insertLeft(JString("borscht"))
 
@@ -37,7 +37,7 @@ CursorCommand API
       "soups":["borscht","goulash","gumbo","minestrone"]
     }
 
-See [CursorCommandExamples][2] for more examples.
+See [CursorStateExamples][2] for more examples.
 
 [1]: http://json4s.org/
-[2]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/CursorCommandExamples.scala
+[2]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/CursorStateExamples.scala

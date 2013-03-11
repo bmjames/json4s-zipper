@@ -6,12 +6,12 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 import scalaz.Scalaz._
 
-import CursorCommand._
+import CursorState._
 import JValueSyntax._
 
-/** Contrived examples to demonstrate how to compose and run CursorCommands
+/** Contrived examples to demonstrate how to compose and run CursorState functions
   */
-class CursorCommandExamples extends FunSuite with ShouldMatchers {
+class CursorStateExamples extends FunSuite with ShouldMatchers {
 
   val json = parse(
     """
@@ -37,7 +37,7 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
       _ <- insertSibling("assetCount", JInt(assets.length))
     } yield ()
 
-  test("exec a cursor command to return an updated JValue if successful") {
+  test("exec a cursor state function to return an updated JValue if successful") {
 
     json exec addAssetCount should equal (Some(parse(
       """
@@ -58,7 +58,7 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
       """)))
   }
 
-  val deleteFirstAsset = field("assets") >> firstChild >> deleteGoUp
+  val deleteFirstAsset = field("assets") >> head >> deleteGoUp
 
   test("execDefault returns the updated JValue if the command succeeds") {
 
@@ -76,14 +76,14 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
       """))
   }
 
-  val failingCommand = field("assets") >> firstChild >> left
+  val failingCommand = field("assets") >> head >> left
 
   test("execDefault returns the initial JValue unchanged if the command fails") {
 
     json execDefault failingCommand should equal (json)
   }
 
-  val moveFocus = field("assets") >> firstChild
+  val moveFocus = field("assets") >> head
 
   test("eval returns the final focus of the cursor if the command succeeds") {
 
@@ -96,7 +96,7 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
       """)))
   }
 
-  val commandWithRetry = field("flibbles") orElse field("assets") >> child(1)
+  val commandWithRetry = field("flibbles") orElse field("assets") >> elem(1)
 
   test ("orElse combines two commands, with the second command tried if the first fails") {
 
@@ -113,15 +113,15 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
     json eval (field("type") having sibling("assets")) should be (Some(JString("image")))
 
-    json eval (field("type") having firstChild) should be (None)
+    json eval (field("type") having head) should be (None)
 
     json exec (field("assets") having sibling("type")) >> deleteGoUp should be (Some(parse("""{"type":"image"}""")))
 
   }
 
-  test("`eachChild` execs the supplied command on each of an array's child elements") {
+  test("`foreach` execs the supplied command on each of an array's child elements") {
 
-    val renameAssetTypes = field("assets") >> eachChild(field("type") >> rename("mimeType"))
+    val renameAssetTypes = field("assets") >> foreach(field("type") >> rename("mimeType"))
 
     json exec renameAssetTypes should be (Some(parse("""
       {
@@ -143,7 +143,7 @@ class CursorCommandExamples extends FunSuite with ShouldMatchers {
 
   test("`remove` syntax  on a JValue removes the element reached by a series of cursor movements") {
 
-    json.removeAt(field("assets") >> child(1) >> field("file")) should be (parse("""
+    json.removeAt(field("assets") >> elem(1) >> field("file")) should be (parse("""
       {
         "type":"image",
         "assets":[

@@ -2,23 +2,23 @@ package com.gu.json
 
 import org.json4s.JsonAST.{JInt, JString, JValue}
 import scalaz.Scalaz._
-import CursorCommand._
+import CursorState._
 
 
 final class JValueOps(value: JValue) {
 
   def cursor: JCursor = JCursor.fromJValue(value)
 
-  def removeAt[A](command: CursorCommand[A]): JValue =
+  def removeAt[A](command: CursorState[A]): JValue =
     execDefault(command >> deleteGoUp)
 
-  def eval[A](command: CursorCommand[A]): Option[A] =
+  def eval[A](command: CursorState[A]): Option[A] =
     command.eval(cursor)
 
-  def exec(command: CursorCommand[_]): Option[JValue] =
+  def exec(command: CursorState[_]): Option[JValue] =
     command.exec(cursor) map (_.toJValue)
 
-  def execDefault(command: CursorCommand[_]): JValue =
+  def execDefault(command: CursorState[_]): JValue =
     exec(command) getOrElse value
 
   def stringValue: Option[String] = value match {

@@ -3,7 +3,7 @@ package com.gu.json
 import scala.annotation.tailrec
 import scala.PartialFunction._
 import org.json4s.JsonAST._
-import scalaz.Functor
+import scalaz._, Scalaz._
 import JValueSyntax._
 import JCursor._
 
@@ -64,11 +64,16 @@ final case class JCursor(focus: JValue, path: Path) {
       case _ => None
     }
 
-  def firstChild: Option[JCursor] =
+  def firstElem: Option[JCursor] =
     condOpt(focus) {
       case JArray(x::xs) => JCursor(x, InArray(Nil, xs) :: path)
-      case JObject(JField(name, value)::xs) => JCursor(value, InObject(name, Nil, xs) :: path)
     }
+
+  def elem(index: Int): Option[JCursor] =
+    for {
+      first <- firstElem
+      elem  <- List.fill(index)(Kleisli((_: JCursor).right)).foldRight(Kleisli.ask[Option, JCursor])(_ <=< _).run(first)
+    } yield elem
 
   def up: Option[JCursor] =
     condOpt(path) {
@@ -90,7 +95,7 @@ final case class JCursor(focus: JValue, path: Path) {
       case _ => None
     }
 
-  def insertChildField(name: String, value: JValue): Option[JCursor] =
+  def insertField(name: String, value: JValue): Option[JCursor] =
     condOpt(focus) {
       case JObject(fields) => JCursor(value, InObject(name, Nil, fields) :: path)
     }
@@ -103,7 +108,7 @@ final case class JCursor(focus: JValue, path: Path) {
 
   def insertSibling(name: String, value: JValue): Option[JCursor] =
     path match {
-      case InObject(_, _, _) :: _ => up flatMap (_.insertChildField(name, value))
+      case InObject(_, _, _) :: _ => up flatMap (_.insertField(name, value))
       case _ => None
     }
 
