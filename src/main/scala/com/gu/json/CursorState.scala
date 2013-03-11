@@ -145,4 +145,7 @@ final class CursorStateOps[A](self: CursorState[A]) {
 
   def having[B](guard: CursorState[B]): CursorState[A] =
     CursorState.having(self, guard)
+
+  def foreach[A](cmd: CursorState[A]): CursorState[JArray] =
+    self >> CursorState.foreach(cmd)
 }

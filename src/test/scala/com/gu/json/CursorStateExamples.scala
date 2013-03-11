@@ -121,19 +121,17 @@ class CursorStateExamples extends FunSuite with ShouldMatchers {
 
   test("`foreach` execs the supplied command on each of an array's child elements") {
 
-    val renameAssetTypes = field("assets") >> foreach(field("type") >> rename("mimeType"))
+    val removeFiles = field("assets") foreach removeField("file")
 
-    json exec renameAssetTypes should be (Some(parse("""
+    json exec removeFiles should be (Some(parse("""
       {
         "type":"image",
         "assets":[
           {
-            "mimeType":"image/jpeg",
-            "file":"foo.jpg"
+            "type":"image/jpeg"
           },
           {
-            "mimeType":"image/png",
-            "file":"foo.png"
+            "type":"image/png"
           }
         ]
       }
