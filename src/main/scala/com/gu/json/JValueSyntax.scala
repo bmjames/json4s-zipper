@@ -3,6 +3,7 @@ package com.gu.json
 import org.json4s.JsonAST.{JInt, JString, JValue}
 import scalaz.Scalaz._
 import CursorState._
+import scalaz.\/
 
 
 final class JValueOps(value: JValue) {
@@ -20,6 +21,12 @@ final class JValueOps(value: JValue) {
 
   def execDefault(command: CursorState[_]): JValue =
     exec(command) getOrElse value
+
+  def run(arrow: CursorArrow): String \/ JValue =
+    arrow.run(cursor).map (_.toJValue)
+
+  def runDefault(arrow: CursorArrow): JValue =
+    run(arrow) getOrElse value
 
   def stringValue: Option[String] = value match {
     case JString(string) => Some(string)
