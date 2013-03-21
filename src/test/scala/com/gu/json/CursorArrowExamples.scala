@@ -5,13 +5,30 @@ import org.scalatest.FunSuite
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
-import scalaz._, Scalaz._
+import scalaz._
 
 import CursorArrows._
 import JValueSyntax._
 
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
+
+  val json = parse(
+    """
+      {
+        "type":"image",
+        "assets":[
+          {
+            "type":"image/jpeg",
+            "file":"foo.jpg"
+          },
+          {
+            "type":"image/png",
+            "file":"foo.png"
+          }
+        ]
+      }
+    """)
 
   test("Remove a field") {
 
@@ -33,13 +50,17 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   }
 
-  test("Remove a deeper field") {
+  test("Replace the value of a field") {
 
-    json runDefault field("assets") >=> firstElem >=> deleteGoUp should be (parse(
+    json runDefault field("type") >=> replace(JString("picture")) should be (parse(
       """
       {
-        "type":"image",
+        "type":"picture",
         "assets":[
+          {
+            "type":"image/jpeg",
+            "file":"foo.jpg"
+          },
           {
             "type":"image/png",
             "file":"foo.png"
@@ -109,23 +130,5 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
       """)))
 
   }
-
-
-  val json = parse(
-    """
-      {
-        "type":"image",
-        "assets":[
-          {
-            "type":"image/jpeg",
-            "file":"foo.jpg"
-          },
-          {
-            "type":"image/png",
-            "file":"foo.png"
-          }
-        ]
-      }
-    """)
 
 }
