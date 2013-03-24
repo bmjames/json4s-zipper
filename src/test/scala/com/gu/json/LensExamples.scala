@@ -28,6 +28,17 @@ class LensExamples extends FunSuite with ShouldMatchers {
       }
     """)
 
+  test("Getting a value") {
+
+    (field("assets") >>> elem(1)).get(json) should be (Some(parse("""
+      {
+        "type":"image/png",
+        "file":"foo.png"
+      }
+    """)))
+
+  }
+
   test("Replacing a value") {
 
     field("assets").mod(_ => JArray(Nil), json) should be (parse("""
