@@ -35,15 +35,25 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
 
 ### Lenses
 
+Lenses enable bidirectional programming; i.e. the ability to query and update a *view* of a data structure, with
+modifications propagating back as changes to the original structure.
+
 This library implements Scalaz partial lenses for `JValue` structures. The get and putback operations are implemented
 using the cursor API, but lenses provide a more composable API, with a whole host of lens-related operations for free.
-The partiality of the lenses is a result of the potential absence of expected elements in the `JValue` structure.
+
+The partiality of the lenses is a result of the potential absence of expected elements in the `JValue` structure. Get
+operations return an `Option`, and set/modify operations which fail will return the original structure unmodified.
 
     import scalaz.syntax.compose._, com.gu.json.Lenses._
 
     // A partial lens focusing on the string value of the 2nd element of field "soups"
     val pLens = field("soups") >>> elem(1) >>> strVal
 
+    // The lens can be used simply to view the value at that location
+    pLens get json
+    // Some("gumbo")
+
+    // The lens can also be used to transform the value
     val updatedJson = pLens mod ("shellfish " + _, json)
 
     println(pretty(render(updatedJson)))
