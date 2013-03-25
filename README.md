@@ -12,7 +12,7 @@ using the AST.) If you have SBT installed, and the source for json4s-zipper, you
 ### Basic Cursor API
 
 It's a little verbose, but you can use the `JCursor` API directly. Most operations result in an `Option[JCursor]`, as
-they may fail (e.g. if you use `field` when the cursor is in a `JArray`).
+they may fail (e.g. if you use `field` when the focus is on a `JArray`).
 
     import org.json4s.native.JsonMethods._, org.json4s.JsonAST._, com.gu.json.JValueSyntax._
 
