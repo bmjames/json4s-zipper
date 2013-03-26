@@ -2,17 +2,17 @@ import java.util.jar._
 
 name := "json4s-zipper"
 
-version in ThisBuild := "1.0-SNAPSHOT"
+version := "1.0-SNAPSHOT"
 
-organization in ThisBuild := "com.gu"
+organization := "com.gu"
 
-scalaVersion in ThisBuild := "2.10.0"
+scalaVersion := "2.10.0"
 
-crossScalaVersions in ThisBuild := Seq("2.9.2", "2.10.0")
+crossScalaVersions := Seq("2.9.2", "2.10.0")
 
 publishArtifact := true
 
-packageOptions in ThisBuild <+= (version, name) map { (v, n) =>
+packageOptions <+= (version, name) map { (v, n) =>
   Package.ManifestAttributes(
     Attributes.Name.IMPLEMENTATION_VERSION -> v,
     Attributes.Name.IMPLEMENTATION_TITLE -> n,
@@ -20,7 +20,7 @@ packageOptions in ThisBuild <+= (version, name) map { (v, n) =>
   )
 }
 
-publishTo in ThisBuild <<= (version) { version: String =>
+publishTo <<= (version) { version: String =>
     val publishType = if (version.endsWith("SNAPSHOT")) "snapshots" else "releases"
     Some(
         Resolver.file(
