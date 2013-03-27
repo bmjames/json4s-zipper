@@ -10,7 +10,7 @@ import org.json4s.JsonAST._
 trait CursorArrow { self =>
   import CursorArrow._
 
-  def run: Kleisli[StringDisjunction, JCursor, JCursor]
+  def run: Kleisli[CursorResult, JCursor, JCursor]
 
   final def compose(that: CursorArrow): CursorArrow = fromK(self.run compose that.run)
   final def andThen(that: CursorArrow): CursorArrow = that compose this
@@ -27,38 +27,48 @@ trait CursorArrow { self =>
 
 object CursorArrow {
 
-  protected type StringDisjunction[+A] = String \/ A
+  protected type CursorResult[+A] = CursorFailure \/ A
 
-  def apply(f: JCursor => StringDisjunction[JCursor]): CursorArrow =
+  def apply(f: JCursor => CursorResult[JCursor]): CursorArrow =
     fromK(Kleisli(f))
 
-  def fromK(k: Kleisli[StringDisjunction, JCursor, JCursor]): CursorArrow =
+  def fromK(k: Kleisli[CursorResult, JCursor, JCursor]): CursorArrow =
     new CursorArrow {
       val run = k
     }
 
-  def withError(f: JCursor => Option[JCursor], onError: JCursor =>  String): CursorArrow =
+  def withFailure(f: JCursor => Option[JCursor], msg: String): CursorArrow =
     CursorArrow { cursor =>
-      f(cursor).toRightDisjunction(onError(cursor))
+      f(cursor).toRightDisjunction(CursorFailure(cursor, msg))
     }
 
+  def fail[A](at: JCursor, msg: String): CursorResult[A] = -\/(CursorFailure(at, msg))
+
 }
+
+/** Data type representing the position of the cursor before the failed action,
+  * with a message describing the action that failed.
+  */
+case class CursorFailure(at: JCursor, msg: String)
 
 object CursorArrows {
   import CursorArrow._
 
-  def field(name: String) = withError(_.field(name), "No field named " + name + " in focus: " + _.focus)
-  def firstElem = withError(_.firstElem, _ => "firstElem of empty JArray")
-  def elem(index: Int) = withError(_.elem(index), "Array index " + index + " is out of bounds in " + _.focus)
+  def field(name: String) = withFailure(_.field(name), "field(" + name + ")")
+
+  def firstElem = withFailure(_.firstElem, "firstElem")
+
+  def elem(index: Int) = withFailure(_.elem(index), "elem(" + index + ")")
 
   def replace(newFocus: JValue) = CursorArrow(right compose (_.replace(newFocus)))
-  def deleteGoUp = withError(_.deleteGoUp, _ => "deleteGoUp at root of tree")
+
+  def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
 
   def eachElem(that: CursorArrow) = CursorArrow {
     case JCursor(JArray(elems), p) =>
       for (cursors <- that.run.traverse(elems map JCursor.fromJValue))
       yield JCursor(JArray(cursors map (_.toJValue)), p)
-    case JCursor(focus, _) => -\/("eachElem not in a JArray: " + focus)
+    case cursor => fail(cursor, "eachElem")
   }
 
 }

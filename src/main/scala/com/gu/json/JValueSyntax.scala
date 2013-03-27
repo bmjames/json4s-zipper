@@ -22,7 +22,7 @@ final class JValueOps(value: JValue) {
   def execDefault(command: CursorState[_]): JValue =
     exec(command) getOrElse value
 
-  def run(arrow: CursorArrow): String \/ JValue =
+  def run(arrow: CursorArrow): CursorFailure \/ JValue =
     arrow.run(cursor).map (_.toJValue)
 
   def runDefault(arrow: CursorArrow): JValue =

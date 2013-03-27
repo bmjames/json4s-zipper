@@ -31,7 +31,7 @@ object Lenses {
   }
 
   def mkPLensP[A](pfn: PartialFunction[JValue, Store[A, JValue]]): JValue @?> A =
-    PLens(a => PartialFunction.condOpt(a)(pfn))
+    PLens(pfn.lift)
 
   def mkPLens(f: JCursor => Option[JCursor]): JValue @?> JValue =
     PLens { jValue =>
