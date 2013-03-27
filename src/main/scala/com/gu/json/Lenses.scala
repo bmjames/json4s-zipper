@@ -30,6 +30,14 @@ object Lenses {
     case JBool(b) => Store(JBool.apply, b)
   }
 
+  def elems: JValue @?> List[JValue] = mkPLensP {
+    case JArray(elems) => Store(JArray.apply, elems)
+  }
+
+  def fields: JValue @?> List[JField] = mkPLensP {
+    case JObject(fields) => Store(JObject.apply, fields)
+  }
+
   def mkPLensP[A](pfn: PartialFunction[JValue, Store[A, JValue]]): JValue @?> A =
     PLens(pfn.lift)
 

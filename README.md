@@ -27,10 +27,8 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
 
     val updatedJson = updatedSoups map (_.toJValue) // Get the resulting JSON
 
-    for (j <- updatedJson) println(pretty(render(j)))
-    // {
-    //   "soups":["borscht","goulash","gumbo","minestrone"]
-    // }
+    for (j <- updatedJson) println(compact(render(j)))
+    // {"soups":["borscht","goulash","gumbo","minestrone"]}
 
 ### Lenses
 
@@ -55,10 +53,8 @@ operations return an `Option`, and set/modify operations which fail will return 
     // The lens can also be used to transform the value
     val updatedJson = pLens mod ("shellfish " + _, json)
 
-    println(pretty(render(updatedJson)))
-    // {
-    //   "soups":["goulash","shellfish gumbo","minestrone"]
-    // }
+    println(compact(render(updatedJson)))
+    // {"soups":["goulash","shellfish gumbo","minestrone"]}
 
 See [LensExamples][2] for more examples.
 
