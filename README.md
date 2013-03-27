@@ -39,7 +39,7 @@ This library implements Scalaz partial lenses for `JValue` structures. The get a
 using the cursor API, but lenses provide a more composable API, with a whole host of lens-related operations for free.
 
 The partiality of the lenses is a result of the potential absence of expected elements in the `JValue` structure. Get
-operations return an `Option`, and set/modify operations which fail will return the original structure unmodified.
+and set operations return an `Option`, and modify operations which fail will return the original structure unmodified.
 
     import scalaz.syntax.compose._, com.gu.json.Lenses._
 
