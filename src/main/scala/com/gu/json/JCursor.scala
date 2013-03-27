@@ -45,6 +45,12 @@ final case class JCursor(focus: JValue, path: Path) {
       case InArray(ls, rs) :: p => JCursor(newElem, InArray(focus::ls, rs) :: p)
     }
 
+  /** Prepend an element to the array at the focus of the cursor */
+  def prepend(elem: JValue): Option[JCursor] =
+    condOpt(focus) {
+      case JArray(elems) => copy(focus = JArray(elem :: elems))
+    }
+
   def left: Option[JCursor] =
     condOpt(path) {
       case InArray(l::ls, rs) :: p  => JCursor(l, InArray(ls, focus::rs) :: p)

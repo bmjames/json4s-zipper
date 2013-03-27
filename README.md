@@ -21,10 +21,9 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
     val cursor = json.cursor // Create a cursor focusing on the root of the `JValue`
 
     val updatedSoups = for {
-      a <- cursor.field("soups")            // Go to field "soups"
-      b <- a.elem(0)                        // Go to the first array element
-      c <- b.insertLeft(JString("borscht")) // Prepend to the array
-    } yield c
+      a <- cursor.field("soups")         // Go to field "soups"
+      b <- a.prepend(JString("borscht")) // Prepend to the array
+    } yield b
 
     val updatedJson = updatedSoups map (_.toJValue) // Get the resulting JSON
 
@@ -35,8 +34,8 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
 
 ### Lenses
 
-Lenses enable bidirectional programming; i.e. the ability to query and update a *view* of a data structure, with
-modifications propagating back as changes to the original structure.
+Lenses enable bidirectional transformations on data structures; i.e. the ability to query and update a *view* of the
+structure, with modifications propagating back as changes to the original structure.
 
 This library implements Scalaz partial lenses for `JValue` structures. The get and putback operations are implemented
 using the cursor API, but lenses provide a more composable API, with a whole host of lens-related operations for free.

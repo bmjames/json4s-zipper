@@ -62,6 +62,8 @@ object CursorArrows {
 
   def replace(newFocus: JValue) = CursorArrow(right compose (_.replace(newFocus)))
 
+  def prepend(elem: JValue) = withFailure(_.prepend(elem), "prepend(" + elem + ")")
+
   def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
 
   def eachElem(that: CursorArrow) = CursorArrow {
