@@ -115,22 +115,6 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Perform an action on each element of an array using eachElem") {
 
-    val json = parse(
-      """
-      {
-        "type":"image",
-        "assets":[
-          {
-            "type":"image/jpeg",
-            "file":"foo.jpg"
-          },
-          {
-            "type":"image/png"
-          }
-        ]
-      }
-      """)
-
     json run field("assets") >=> eachElem(field("file") >=> deleteGoUp) should be (\/-(parse(
       """
       {
@@ -158,7 +142,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
     failure.map(_.history) should be (Some(Field("type") :: Elem(0) :: Nil))
 
     // Reports the cursor position before failure
-    failure.map(_.at.focus) should be (Some(JString("image")))
+    failure.map(_.at) should be (Some(JString("image")))
   }
 
 }

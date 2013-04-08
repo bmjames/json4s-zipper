@@ -42,7 +42,7 @@ final class JValueOps(value: JValue) {
 
 }
 
-case class CursorFailure(at: JCursor, history: List[CursorMovement])
+case class CursorFailure(at: JValue, history: List[CursorHistory])
 
 object JValueSyntax {
   implicit def toJValueOps(value: JValue): JValueOps = new JValueOps(value)

@@ -22,11 +22,16 @@ trait CursorArrow { self =>
 
   final def orElse(that: CursorArrow): CursorArrow = CursorArrow { c => run(c) orElse that.run(c) }
 
+  private [json] def mapHistory(f: List[CursorHistory] => List[CursorHistory]): CursorArrow =
+    CursorArrow { cursor =>
+      EitherT[CursorHistoryWriter, Failed, JCursor](run(cursor).run.mapWritten(f))
+    }
+
 }
 
 object CursorArrow {
 
-  protected type CursorHistoryWriter[+A] = Writer[List[CursorMovement], A]
+  protected type CursorHistoryWriter[+A] = Writer[List[CursorHistory], A]
   protected type CursorResult[+A] = EitherT[CursorHistoryWriter, Failed, A]
 
   def apply(f: JCursor => CursorResult[JCursor]): CursorArrow =
@@ -37,20 +42,17 @@ object CursorArrow {
       val run = k
     }
 
-  def withFailure(f: JCursor => Option[JCursor], movement: CursorMovement): CursorArrow =
+  def withFailure(f: JCursor => Option[JCursor], movement: CursorHistory): CursorArrow =
     CursorArrow { cursor =>
-      EitherT[CursorHistoryWriter, Failed, JCursor](f(cursor).toRightDisjunction(Failed(cursor)).set(List(movement)))
+      EitherT[CursorHistoryWriter, Failed, JCursor](f(cursor).toRightDisjunction(Failed(cursor.focus)).set(List(movement)))
     }
 
-  def fail[A](at: JCursor, movement: CursorMovement): CursorResult[A] =
+  def fail[A](at: JValue, movement: CursorHistory): CursorResult[A] =
     EitherT[CursorHistoryWriter, Failed, A](-\/(Failed(at)).set(List(movement)))
 
 }
 
-/** Data type representing the position of the cursor before the failed action,
-  * with a message describing the action that failed.
-  */
-private [json] case class Failed(cursor: JCursor)
+private [json] case class Failed(cursor: JValue)
 
 object CursorArrows {
   import CursorArrow._
@@ -69,9 +71,13 @@ object CursorArrows {
 
   def eachElem(that: CursorArrow) = CursorArrow {
     case JCursor(JArray(elems), p) =>
-      for (cursors <- that.run.traverse(elems map JCursor.fromJValue))
+      for {
+        cursors <- that
+          .mapHistory(h => List(Iter(h))).run // Put history for each iteration into an Iter()
+          .traverse(elems map (e => JCursor.fromJValue(e)))
+      }
       yield JCursor(JArray(cursors map (_.toJValue)), p)
-    case cursor => fail(cursor, EachElem)
+    case cursor => fail(cursor.focus, EachElem)
   }
 
 }
