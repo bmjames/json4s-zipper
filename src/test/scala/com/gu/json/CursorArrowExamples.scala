@@ -10,7 +10,6 @@ import scalaz._
 import CursorArrows._
 import JValueSyntax._
 import scalaz.\/-
-import com.gu.json.CursorFailure
 
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
@@ -116,6 +115,22 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Perform an action on each element of an array using eachElem") {
 
+    val json = parse(
+      """
+      {
+        "type":"image",
+        "assets":[
+          {
+            "type":"image/jpeg",
+            "file":"foo.jpg"
+          },
+          {
+            "type":"image/png"
+          }
+        ]
+      }
+      """)
+
     json run field("assets") >=> eachElem(field("file") >=> deleteGoUp) should be (\/-(parse(
       """
       {
@@ -140,7 +155,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
     val failure: Option[CursorFailure] = json.run(failingAction).swap.toOption
 
     // Reports the action that failed
-    failure.map(_.msg) should be (Some("elem(0)"))
+    failure.map(_.history) should be (Some(Field("type") :: Elem(0) :: Nil))
 
     // Reports the cursor position before failure
     failure.map(_.at.focus) should be (Some(JString("image")))

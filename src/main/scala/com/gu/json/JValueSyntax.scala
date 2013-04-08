@@ -22,8 +22,10 @@ final class JValueOps(value: JValue) {
   def execDefault(command: CursorState[_]): JValue =
     exec(command) getOrElse value
 
-  def run(arrow: CursorArrow): CursorFailure \/ JValue =
-    arrow.run(cursor).map (_.toJValue)
+  def run(arrow: CursorArrow): CursorFailure \/ JValue = {
+    val (history, cursor) = arrow.run(this.cursor).run.run
+    cursor.bimap({ case Failed(c) => CursorFailure(c, history) }, _.toJValue)
+  }
 
   def runDefault(arrow: CursorArrow): JValue =
     run(arrow) getOrElse value
@@ -39,6 +41,8 @@ final class JValueOps(value: JValue) {
   }
 
 }
+
+case class CursorFailure(at: JCursor, history: List[CursorMovement])
 
 object JValueSyntax {
   implicit def toJValueOps(value: JValue): JValueOps = new JValueOps(value)
