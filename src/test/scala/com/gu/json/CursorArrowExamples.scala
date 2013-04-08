@@ -9,6 +9,8 @@ import scalaz._
 
 import CursorArrows._
 import JValueSyntax._
+import scalaz.\/-
+import com.gu.json.CursorFailure
 
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
@@ -129,6 +131,19 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
       }
       """)))
 
+  }
+
+  test("Error reporting") {
+
+    val failingAction = field("type") >=> elem(0)
+
+    val failure: Option[CursorFailure] = json.run(failingAction).swap.toOption
+
+    // Reports the action that failed
+    failure.map(_.msg) should be (Some("elem(0)"))
+
+    // Reports the cursor position before failure
+    failure.map(_.at.focus) should be (Some(JString("image")))
   }
 
 }
