@@ -10,7 +10,6 @@ import scalaz._
 import CursorArrows._
 import JValueSyntax._
 import scalaz.\/-
-import com.gu.json.CursorFailure
 
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
