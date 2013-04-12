@@ -48,4 +48,10 @@ object Lenses {
         c.focus
       )
     }
+
+  implicit class PStateOps[A, B](self: PState[A, B]) {
+    /** OptionT monad transformer, specialized to partial lens state */
+    def optionT = OptionT[({type λ[+α]=IndexedStateT[Id.Id, A, A, α]})#λ, B](self)
+  }
+
 }

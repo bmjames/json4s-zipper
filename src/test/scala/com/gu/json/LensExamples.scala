@@ -30,12 +30,9 @@ class LensExamples extends FunSuite with ShouldMatchers {
 
   test("Update one field based on the value of another") {
 
-    /** OptionT monad transformer, specialized to partial lens state */
-    def optionT[A, B](s: PState[A, B]) = OptionT.optionT[({type λ[+α]=IndexedStateT[Id.Id, A, A, α]})#λ](s)
-
     def foo = for {
-      _type <- optionT(field("type"))
-      _ <- optionT(field("assets") := _type)
+      _type <- field("type").st.optionT
+      _ <- (field("assets") := _type).optionT
     } yield ()
 
     foo.run.exec(json) should be (parse("""
