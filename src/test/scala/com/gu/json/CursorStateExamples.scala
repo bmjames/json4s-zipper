@@ -34,7 +34,7 @@ class CursorStateExamples extends FunSuite with ShouldMatchers {
   val addAssetCount =
     for {
       JArray(assets) <- field("assets")
-      _ <- insertSibling("assetCount", JInt(assets.length))
+      _ <- insertFieldLeft("assetCount", JInt(assets.length))
     } yield ()
 
   test("exec a cursor state function to return an updated JValue if successful") {
@@ -42,8 +42,8 @@ class CursorStateExamples extends FunSuite with ShouldMatchers {
     json exec addAssetCount should equal (Some(parse(
       """
         {
-          "assetCount": 2,
           "type":"image",
+          "assetCount": 2,
           "assets":[
             {
               "type":"image/jpeg",

@@ -112,10 +112,14 @@ final case class JCursor(focus: JValue, path: Path) {
       case _ => None
     }
 
-  def insertSibling(name: String, value: JValue): Option[JCursor] =
-    path match {
-      case InObject(_, _, _) :: _ => up flatMap (_.insertField(name, value))
-      case _ => None
+  def insertFieldLeft(name: String, value: JValue): Option[JCursor] =
+    condOpt(path) {
+      case InObject(n, ls, rs) :: p => JCursor(value, InObject(name, ls, JField(n, focus) :: rs) :: p)
+    }
+
+  def insertFieldRight(name: String, value: JValue): Option[JCursor] =
+    condOpt(path) {
+      case InObject(n, ls, rs) :: p => JCursor(value, InObject(name, JField(n, focus) :: ls, rs) :: p)
     }
 
   def rename(name: String): Option[JCursor] =

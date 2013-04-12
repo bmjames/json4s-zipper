@@ -43,8 +43,11 @@ object CursorState {
   def insertChildField(name: String, value: JValue): CursorState[JValue] =
     returnFocusOpt(_.insertField(name, value))
 
-  def insertSibling(name: String, value: JValue): CursorState[JValue] =
-    returnFocusOpt(_.insertSibling(name, value))
+  def insertFieldLeft(name: String, value: JValue): CursorState[JValue] =
+    returnFocusOpt(_.insertFieldLeft(name, value))
+
+  def insertFieldRight(name: String, value: JValue): CursorState[JValue] =
+    returnFocusOpt(_.insertFieldRight(name, value))
 
   def rename(name: String): CursorState[JValue] = returnFocusOpt(_.rename(name))
 
