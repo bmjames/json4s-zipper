@@ -86,11 +86,13 @@ final case class JCursor(focus: JValue, path: Path) {
       case JArray(x::xs) => JCursor(x, InArray(Nil, xs) :: path)
     }
 
+  import com.gu.util.EndoKleisli._
+
   /** Move the focus down to the array element at the specified index */
   def elem(index: Int): Option[JCursor] =
     for {
       first <- firstElem
-      elem  <- List.fill(index)(Kleisli((_: JCursor).right)).foldRight(Kleisli.ask[Option, JCursor])(_ <=< _).run(first)
+      elem <- endoKleisli[Option, JCursor](_.right).multiply(index)(first)
     } yield elem
 
   /** Move the focus up one level */
