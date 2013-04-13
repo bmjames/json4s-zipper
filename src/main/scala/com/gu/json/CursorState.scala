@@ -120,7 +120,7 @@ object CursorState {
    * I've not thought about this too hard, but I think it probably satisfies enough laws to be reasonable.
    * See http://en.wikibooks.org/wiki/Haskell/MonadPlus#The_MonadPlus_laws
    */
-  implicit val cursorCommandMonadPlus: MonadPlus[CursorState] = new MonadPlus[CursorState] {
+  implicit val cursorStateMonadPlus: MonadPlus[CursorState] = new MonadPlus[CursorState] {
 
     def plus[A](a: CursorState[A], b: => CursorState[A]) = orElse(a, b)
 
