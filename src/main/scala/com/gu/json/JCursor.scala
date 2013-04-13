@@ -4,9 +4,10 @@ import scala.annotation.tailrec
 import scala.PartialFunction._
 import org.json4s.JsonAST._
 import scalaz._, Scalaz._
+
+import com.gu.util.EndoKleisli._
 import JValueSyntax._
 import JCursor._
-
 
 /** Represents a position within a JValue structure, comprising a value under the cursor (the focus) and a context.
   */
@@ -64,11 +65,19 @@ final case class JCursor(focus: JValue, path: Path) {
       case InArray(l::ls, rs) :: p  => JCursor(l, InArray(ls, focus::rs) :: p)
     }
 
+  /** Move the focus left n times in an array */
+  def leftN(n: Int): Option[JCursor] =
+    endoKleisli[Option, JCursor](_.left).multiply(n)(this)
+
   /** Move the focus right by one array element */
   def right: Option[JCursor] =
     condOpt(path) {
       case InArray(ls, r::rs) :: p => JCursor(r, InArray(focus::ls, rs) :: p)
     }
+
+  /** Move the focus right n times in an array */
+  def rightN(n: Int): Option[JCursor] =
+    endoKleisli[Option, JCursor](_.right).multiply(n)(this)
 
   /** Find an array element to the left of the focus matching */
   def findLeft(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
@@ -86,14 +95,9 @@ final case class JCursor(focus: JValue, path: Path) {
       case JArray(x::xs) => JCursor(x, InArray(Nil, xs) :: path)
     }
 
-  import com.gu.util.EndoKleisli._
-
   /** Move the focus down to the array element at the specified index */
   def elem(index: Int): Option[JCursor] =
-    for {
-      first <- firstElem
-      elem <- endoKleisli[Option, JCursor](_.right).multiply(index)(first)
-    } yield elem
+    firstElem flatMap (_.rightN(index))
 
   /** Move the focus up one level */
   def up: Option[JCursor] =
