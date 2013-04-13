@@ -2,7 +2,7 @@ package com.gu.util
 
 import scalaz.{ Bind, Kleisli, Monad }
 
-/** Newtype for Kleisli[F, A, A] with a monoid in terms of composition
+/** Newtype for Kleisli[F, A, A] with a monoid in terms of Kleisli composition
   */
 trait EndoKleisli[F[+_], A] {
 
