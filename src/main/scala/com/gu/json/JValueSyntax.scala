@@ -8,7 +8,7 @@ import scalaz.\/
 
 final class JValueOps(value: JValue) {
 
-  def cursor: JCursor = JCursor.fromJValue(value)
+  def cursor: JCursor = JCursor.jCursor(value)
 
   def removeAt[A](command: CursorState[A]): JValue =
     execDefault(command >> deleteGoUp)

@@ -99,10 +99,12 @@ object CursorState {
       _ <- monadState.put(s)
     } yield a
 
+  import JCursor.jCursor
+
   def foreach[A](cmd: CursorState[A]): CursorState[JArray] =
     for {
       JArray(children) <- getFocus
-      Some(cs) <- children.traverse(c => cmd.exec(JCursor.fromJValue(c)).map(_.toJValue)).point[CursorState]
+      Some(cs) <- children.traverse(c => cmd.exec(jCursor(c)).map(_.toJValue)).point[CursorState]
       newFocus = JArray(cs)
       _ <- replace(newFocus)
     } yield newFocus

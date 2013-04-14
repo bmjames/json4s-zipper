@@ -68,7 +68,7 @@ object CursorArrows {
 
   def eachElem(that: CursorArrow) = CursorArrow {
     case JCursor(JArray(elems), p) =>
-      for (cursors <- that.run.traverse(elems map JCursor.fromJValue))
+      for (cursors <- that.run.traverse(elems map JCursor.jCursor))
       yield JCursor(JArray(cursors map (_.toJValue)), p)
     case cursor => fail(cursor, "eachElem")
   }

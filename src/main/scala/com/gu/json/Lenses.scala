@@ -43,7 +43,7 @@ object Lenses {
 
   def mkPLens(f: JCursor => Option[JCursor]): JValue @?> JValue =
     PLens { jValue =>
-      for (c <- f(JCursor.fromJValue(jValue))) yield Store(
+      for (c <- f(JCursor.jCursor(jValue))) yield Store(
         newFocus => c.replace(newFocus).toJValue,
         c.focus
       )

@@ -167,7 +167,7 @@ final case class JCursor(focus: JValue, path: Path) {
 
 object JCursor {
 
-  def fromJValue(jValue: JValue): JCursor = JCursor(jValue, Nil)
+  def jCursor(jValue: JValue): JCursor = JCursor(jValue, Nil)
 
   type Path = List[PathElem]
 
