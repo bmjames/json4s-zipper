@@ -11,7 +11,7 @@ import JCursor._
 
 /** Represents a position within a JValue structure, comprising a value under the cursor (the focus) and a context.
   */
-final case class JCursor(focus: JValue, path: Path) {
+case class JCursor(focus: JValue, path: Path) {
 
   /** Replace the value at the focus */
   def replace(newFocus: JValue): JCursor =
@@ -154,7 +154,7 @@ final case class JCursor(focus: JValue, path: Path) {
 
   /** Go back to the root of the tree */
   @tailrec
-  def root: JCursor =
+  final def root: JCursor =
     up match {
       case Some(cursor) => cursor.root
       case None => this
