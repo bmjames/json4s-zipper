@@ -64,6 +64,10 @@ object CursorArrows {
 
   def prepend(elem: JValue) = withFailure(_.prepend(elem), "prepend(" + elem + ")")
 
+  def transform(pfn: PartialFunction[JValue, JValue]) = CursorArrow { cursor =>
+    \/-(cursor.copy(focus = cursor.focus.transform(pfn)))
+  }
+
   def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
 
   def eachElem(that: CursorArrow) = CursorArrow {

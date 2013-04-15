@@ -11,7 +11,6 @@ import CursorArrows._
 import JValueSyntax._
 import scalaz.\/-
 
-
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   val json = parse(
@@ -143,6 +142,57 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
     // Reports the cursor position before failure
     failure.map(_.at.focus) should be (Some(JString("image")))
+  }
+
+  type CursorArrowBuilder = CursorArrow => CursorArrow
+
+  implicit class BuilderOps(self: CursorArrowBuilder) {
+    def \(that: Symbol): CursorArrowBuilder = arr => self(field(that.name) >=> arr)
+    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => self(that(arr))
+  }
+
+  implicit class CursorStateExpr(self: Symbol) {
+    def \(that: Symbol): CursorArrowBuilder = field(self.name) >=> field(that.name) >=> _
+    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self.name) >=> that(arr)
+  }
+
+  object * extends CursorArrowBuilder {
+    def apply(v1: CursorArrow) = eachElem(v1)
+  }
+
+  test("Symbol expression builders") {
+
+    json delete 'assets \ * \ 'type should be (parse("""
+      {
+        "type":"image",
+        "assets":[
+          {
+            "file":"foo.jpg"
+          },
+          {
+            "file":"foo.png"
+          }
+        ]
+      }
+    """))
+
+    (json mod 'assets \ * \ 'file) { case JString(file) => JString("http://example.com/" + file) } should be (
+      parse("""
+        {
+          "type":"image",
+          "assets":[
+            {
+              "type":"image/jpeg",
+              "file":"http://example.com/foo.jpg"
+            },
+            {
+              "type":"image/png",
+              "file":"http://example.com/foo.png"
+            }
+          ]
+        }
+      """))
+
   }
 
 }
