@@ -2,8 +2,10 @@ package com.gu.json
 
 import org.json4s.JsonAST.{JInt, JString, JValue}
 import scalaz.Scalaz._
-import CursorState._
 import scalaz.\/
+
+import CursorArrowSyntax.CursorArrowBuilder
+import CursorState._
 
 
 final class JValueOps(value: JValue) {
@@ -13,10 +15,10 @@ final class JValueOps(value: JValue) {
   def removeAt[A](command: CursorState[A]): JValue =
     execDefault(command >> deleteGoUp)
 
-  def delete(builder: CursorArrow => CursorArrow): JValue =
+  def delete(builder: CursorArrowBuilder): JValue =
     runDefault(builder(CursorArrows.deleteGoUp))
 
-  def mod(builder: CursorArrow => CursorArrow)(pfn: PartialFunction[JValue, JValue]): JValue =
+  def mod(builder: CursorArrowBuilder)(pfn: PartialFunction[JValue, JValue]): JValue =
     runDefault(builder(CursorArrows.transform(pfn)))
 
   def eval[A](command: CursorState[A]): Option[A] =
