@@ -18,7 +18,10 @@ final class JValueOps(value: JValue) {
   def delete(builder: CursorArrowBuilder): JValue =
     runDefault(builder(CursorArrows.deleteGoUp))
 
-  def mod(builder: CursorArrowBuilder)(pfn: PartialFunction[JValue, JValue]): JValue =
+  def mod(builder: CursorArrowBuilder)(f: JValue => JValue): JValue =
+    runDefault(builder(CursorArrows.mod(f)))
+    
+  def modp(builder: CursorArrowBuilder)(pfn: PartialFunction[JValue, JValue]): JValue =
     runDefault(builder(CursorArrows.transform(pfn)))
 
   def eval[A](command: CursorState[A]): Option[A] =

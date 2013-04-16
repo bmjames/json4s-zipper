@@ -1,7 +1,7 @@
 package com.gu.json
 
 import org.json4s.JsonAST._
-import scalaz._
+import scalaz._, Scalaz._
 
 
 object Lenses {
@@ -49,9 +49,17 @@ object Lenses {
       )
     }
 
+}
+
+trait PStateSyntax {
+
   implicit class PStateOps[A, B](self: PState[A, B]) {
+    
     /** OptionT monad transformer, specialized to partial lens state */
     def optionT = OptionT[({type λ[+α]=IndexedStateT[Id.Id, A, A, α]})#λ, B](self)
+
   }
 
 }
+
+object PStateSyntax extends PStateSyntax

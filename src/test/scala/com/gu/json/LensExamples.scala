@@ -28,6 +28,8 @@ class LensExamples extends FunSuite with ShouldMatchers {
       }
     """)
 
+  import PStateSyntax._
+    
   test("Update one field based on the value of another") {
 
     def foo = for {

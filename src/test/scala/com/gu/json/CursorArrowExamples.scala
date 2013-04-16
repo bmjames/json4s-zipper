@@ -147,21 +147,9 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Symbol expression builders") {
 
-    json delete 'assets \ * \ 'type should be (parse("""
-      {
-        "type":"image",
-        "assets":[
-          {
-            "file":"foo.jpg"
-          },
-          {
-            "file":"foo.png"
-          }
-        ]
-      }
-    """))
+    // modify with a PartialFunction
 
-    (json mod 'assets \ * \ 'file) { case JString(file) => JString("http://example.com/" + file) } should be (
+    json.modp ('assets \ * \ 'file) { case JString(s) => JString("http://example.com/" + s) } should be (
       parse("""
         {
           "type":"image",
@@ -177,6 +165,46 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
           ]
         }
       """))
+
+    
+    
+    // modify through a lens
+    
+    import Lenses.strVal
+    
+    json.mod ('assets \ * \ 'file) { strVal =>= ("http://example.com/" + _) } should be (
+      parse("""
+        {
+          "type":"image",
+          "assets":[
+            {
+              "type":"image/jpeg",
+              "file":"http://example.com/foo.jpg"
+            },
+            {
+              "type":"image/png",
+              "file":"http://example.com/foo.png"
+            }
+          ]
+        }
+      """))
+    
+    
+    // delete
+    
+    json delete 'assets \ * \ 'type should be (parse("""
+      {
+        "type":"image",
+        "assets":[
+          {
+            "file":"foo.jpg"
+          },
+          {
+            "file":"foo.png"
+          }
+        ]
+      }
+    """))
 
   }
 

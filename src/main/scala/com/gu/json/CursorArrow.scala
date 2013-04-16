@@ -64,9 +64,9 @@ object CursorArrows {
 
   def prepend(elem: JValue) = withFailure(_.prepend(elem), "prepend(" + elem + ")")
 
-  def transform(pfn: PartialFunction[JValue, JValue]) = CursorArrow { cursor =>
-    \/-(cursor.copy(focus = cursor.focus.transform(pfn)))
-  }
+  def mod(f: JValue => JValue) = CursorArrow { cursor => \/-(cursor.withFocus(f)) }
+  
+  def transform(pfn: PartialFunction[JValue, JValue]) = CursorArrow { cursor => \/-(cursor.transform(pfn)) }
 
   def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
 
