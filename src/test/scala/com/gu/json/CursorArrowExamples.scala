@@ -6,10 +6,11 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 import scalaz._
+import scalaz.\/-
 
 import CursorArrows._
-import JValueSyntax._
-import scalaz.\/-
+import com.gu.json.syntax._
+
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
@@ -142,22 +143,6 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
     // Reports the cursor position before failure
     failure.map(_.at.focus) should be (Some(JString("image")))
-  }
-
-  type CursorArrowBuilder = CursorArrow => CursorArrow
-
-  implicit class BuilderOps(self: CursorArrowBuilder) {
-    def \(that: Symbol): CursorArrowBuilder = arr => self(field(that.name) >=> arr)
-    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => self(that(arr))
-  }
-
-  implicit class CursorStateExpr(self: Symbol) {
-    def \(that: Symbol): CursorArrowBuilder = field(self.name) >=> field(that.name) >=> _
-    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self.name) >=> that(arr)
-  }
-
-  object * extends CursorArrowBuilder {
-    def apply(v1: CursorArrow) = eachElem(v1)
   }
 
   test("Symbol expression builders") {

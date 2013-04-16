@@ -78,3 +78,28 @@ object CursorArrows {
   }
 
 }
+
+
+trait CursorArrowSyntax {
+  
+  import CursorArrows._
+
+  type CursorArrowBuilder = CursorArrow => CursorArrow
+
+  implicit class BuilderOps(self: CursorArrowBuilder) {
+    def \(that: Symbol): CursorArrowBuilder = arr => self(field(that.name) >=> arr)
+    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => self(that(arr))
+  }
+
+  implicit class CursorStateExpr(self: Symbol) {
+    def \(that: Symbol): CursorArrowBuilder = field(self.name) >=> field(that.name) >=> _
+    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self.name) >=> that(arr)
+  }
+
+  object * extends CursorArrowBuilder {
+    def apply(v1: CursorArrow) = eachElem(v1)
+  }
+  
+}
+
+object CursorArrowSyntax extends CursorArrowSyntax

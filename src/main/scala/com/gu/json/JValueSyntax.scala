@@ -46,6 +46,9 @@ final class JValueOps(value: JValue) {
 
 }
 
-object JValueSyntax {
+trait JValueSyntax {
   implicit def toJValueOps(value: JValue): JValueOps = new JValueOps(value)
 }
+
+object JValueSyntax extends JValueSyntax
+
