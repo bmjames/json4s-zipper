@@ -9,14 +9,30 @@ This library depends on json4s-core, not on any of the json4s parsing libraries.
 a project that depends on `json4s-native` or `json4s-jackson`. (Or, you'll need to construct the JSON example by hand
 using the AST.) If you have SBT installed, and the source for json4s-zipper, you can simply run `sbt test:console`.
 
+To start with, here is some JSON, parsed into the `JValue` AST.
+
+    import org.json4s.native.JsonMethods._
+    
+    val json = parse("""{"soups":["goulash","gumbo","minestrone"]}""")
+
+
+### XPath-style syntax
+
+This library has support for modifying elements of a JSON structure using an xpath-like syntax.
+
+    import com.gu.json.syntax._
+    import org.json4s.JsonAST._
+
+    // Append the string " is tasty!" to each string in the array within the field "soups"
+    val tastySoups = json.mod ('soups \ *) { case JString(s) => JString(s + " is tasty!") }
+    
+    println(compact(render(tastySoups)))
+    // {"soups":["goulash is tasty!","gumbo is tasty!","minestrone is tasty!"]}
+
 ### Basic Cursor API
 
 It's a little verbose, but you can use the `JCursor` API directly. Most operations result in an `Option[JCursor]`, as
 they may fail (e.g. if you use `field` when the focus is on a `JArray`).
-
-    import org.json4s.native.JsonMethods._, org.json4s.JsonAST._, com.gu.json.JValueSyntax._
-
-    val json = parse("""{"soups":["goulash","gumbo","minestrone"]}""")
 
     val cursor = json.cursor // Create a cursor focusing on the root of the `JValue`
 
@@ -41,14 +57,14 @@ using the cursor API, but lenses provide a more composable API, with a whole hos
 The partiality of the lenses is a result of the potential absence of expected elements in the `JValue` structure. Get
 and set operations return an `Option`, and modify operations which fail will return the original structure unmodified.
 
-    import scalaz.syntax.compose._, com.gu.json.Lenses._
+    import com.gu.json.Lenses._
 
     // A partial lens focusing on the string value of the 2nd element of field "soups"
-    val pLens = field("soups") >>> elem(1) >>> strVal
+    val pLens = field("soups") >=> elem(1) >=> strVal
 
     // The lens can be used simply to view the value at that location
     pLens get json
-    // Some("gumbo")
+    // Some(gumbo)
 
     // The lens can also be used to transform the value
     val updatedJson = pLens mod ("shellfish " + _, json)
