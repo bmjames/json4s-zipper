@@ -39,15 +39,11 @@ final class JValueOps(value: JValue) {
   def runDefault(arrow: CursorArrow): JValue =
     run(arrow) getOrElse value
 
-  def stringValue: Option[String] = value match {
-    case JString(string) => Some(string)
-    case _ => None
-  }
+  def stringValue: Option[String] =
+    Lenses.strVal.get(value)
 
-  def bigIntValue: Option[BigInt] = value match {
-    case JInt(int) => Some(int)
-    case _ => None
-  }
+  def bigIntValue: Option[BigInt] =
+    Lenses.intVal.get(value)
 
 }
 
