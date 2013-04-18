@@ -149,30 +149,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
     // modify with a PartialFunction
 
-    json.modp ('assets \ * \ 'file) { case JString(s) => JString("http://example.com/" + s) } should be (
-      parse("""
-        {
-          "type":"image",
-          "assets":[
-            {
-              "type":"image/jpeg",
-              "file":"http://example.com/foo.jpg"
-            },
-            {
-              "type":"image/png",
-              "file":"http://example.com/foo.png"
-            }
-          ]
-        }
-      """))
-
-    
-    
-    // modify through a lens
-    
-    import Lenses.strVal
-    
-    json.mod ('assets \ * \ 'file) { strVal =>= ("http://example.com/" + _) } should be (
+    json.modp ("assets" \ * \ "file") { case JString(s) => JString("http://example.com/" + s) } should be (
       parse("""
         {
           "type":"image",
@@ -192,7 +169,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
     
     // delete
     
-    json delete 'assets \ * \ 'type should be (parse("""
+    json delete "assets" \ * \ "type" should be (parse("""
       {
         "type":"image",
         "assets":[

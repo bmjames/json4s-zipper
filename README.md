@@ -24,7 +24,7 @@ This library has support for modifying elements of a JSON structure using an xpa
     import org.json4s.JsonAST._
 
     // Append the string " is tasty!" to each string in the array within the field "soups"
-    val tastySoups = json.mod ('soups \ *) { case JString(s) => JString(s + " is tasty!") }
+    val tastySoups = json.mod ("soups" \ *) { case JString(s) => JString(s + " is tasty!") }
     
     println(compact(render(tastySoups)))
     // {"soups":["goulash is tasty!","gumbo is tasty!","minestrone is tasty!"]}

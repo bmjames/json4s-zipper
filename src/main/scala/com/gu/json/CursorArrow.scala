@@ -87,13 +87,13 @@ trait CursorArrowSyntax {
   type CursorArrowBuilder = CursorArrow => CursorArrow
 
   implicit class BuilderOps(self: CursorArrowBuilder) {
-    def \(that: Symbol): CursorArrowBuilder = arr => self(field(that.name) >=> arr)
+    def \(that: String): CursorArrowBuilder = arr => self(field(that) >=> arr)
     def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => self(that(arr))
   }
 
-  implicit class CursorStateExpr(self: Symbol) {
-    def \(that: Symbol): CursorArrowBuilder = field(self.name) >=> field(that.name) >=> _
-    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self.name) >=> that(arr)
+  implicit class CursorStateExpr(self: String) {
+    def \(that: String): CursorArrowBuilder = field(self) >=> field(that) >=> _
+    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self) >=> that(arr)
   }
 
   object * extends CursorArrowBuilder {
