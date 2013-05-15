@@ -79,15 +79,13 @@ case class JCursor(focus: JValue, path: Path) {
   def rightN(n: Int): Option[JCursor] =
     endoKleisli[Option, JCursor](_.right).multiply(n)(this)
 
-  /** Find an array element to the left of the focus matching */
+  /** Find an array element to the left of the focus matching a predicate */
   def findLeft(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
-    path match {
-      case InArray(ls, rs) :: path  => ls.span(l => ! cond(l)(pfn)) match {
-        case (xs, newFocus::ls) => Some(JCursor(newFocus, InArray(ls, xs reverse_::: rs) :: path))
-        case _ => None
-      }
-      case _ => None
-    }
+    left flatMap { case c @ JCursor(f, _) => cond(f)(pfn).option(c) orElse c.findLeft(pfn) }
+  
+  /** Find an array element to the right of the focus matching a predicate */
+  def findRight(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
+    right flatMap { case c @ JCursor(f, _) => cond(f)(pfn).option(c) orElse c.findRight(pfn) }
 
   /** Move the focus down to the first element of an array */
   def firstElem: Option[JCursor] =
