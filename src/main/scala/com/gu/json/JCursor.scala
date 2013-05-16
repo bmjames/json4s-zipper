@@ -79,13 +79,23 @@ case class JCursor(focus: JValue, path: Path) {
   def rightN(n: Int): Option[JCursor] =
     endoKleisli[Option, JCursor](_.right).multiply(n)(this)
 
+  import EphemeralStream._
+
+  /** Stream of cursors resulting from moving left in an array */
+  final def lefts: EphemeralStream[JCursor] =
+    left.fold(emptyEphemeralStream[JCursor])(cursor => cons(cursor, cursor.lefts))
+
+  /** Stream of cursors resulting from moving right in an array */
+  final def rights: EphemeralStream[JCursor] =
+    right.fold(emptyEphemeralStream[JCursor])(cursor => cons(cursor, cursor.rights))
+
   /** Find an array element to the left of the focus matching a predicate */
   def findLeft(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
-    left flatMap { case c @ JCursor(f, _) => cond(f)(pfn).option(c) orElse c.findLeft(pfn) }
-  
+    lefts.find { case JCursor(f, _) => cond(f)(pfn) }
+
   /** Find an array element to the right of the focus matching a predicate */
   def findRight(pfn: PartialFunction[JValue, Boolean]): Option[JCursor] =
-    right flatMap { case c @ JCursor(f, _) => cond(f)(pfn).option(c) orElse c.findRight(pfn) }
+    rights.find { case JCursor(f, _) => cond(f)(pfn) }
 
   /** Move the focus down to the first element of an array */
   def firstElem: Option[JCursor] =
