@@ -1,7 +1,7 @@
 json4s-zipper
 =============
 
-A experimental zipper library for the [json4s][1] AST.
+An experimental zipper library for the [json4s][1] AST.
 
 ## Examples
 
