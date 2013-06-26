@@ -1,7 +1,9 @@
 json4s-zipper
 =============
 
-An experimental zipper library for the [json4s][1] AST.
+This is an experimental [zipper][1] library for the [json4s][2] AST.
+
+The goal of this library is to implement purely functional modifications to immutable JSON structures.
 
 ## Examples
 
@@ -72,7 +74,8 @@ and set operations return an `Option`, and modify operations which fail will ret
     println(compact(render(updatedJson)))
     // {"soups":["goulash","shellfish gumbo","minestrone"]}
 
-See [LensExamples][2] for more examples.
+See [LensExamples][3] for more examples.
 
-[1]: http://json4s.org/
-[2]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/LensExamples.scala
+[1]: http://en.wikipedia.org/wiki/Zipper_(data_structure)
+[2]: http://json4s.org/
+[3]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/LensExamples.scala
