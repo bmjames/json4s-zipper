@@ -5,7 +5,7 @@ import scala.PartialFunction._
 import org.json4s.JsonAST._
 import scalaz._, Scalaz._
 
-import com.gu.util.EndoKleisli._
+import Endomorphic._
 import JValueSyntax._
 import JCursor._
 
@@ -67,7 +67,7 @@ case class JCursor(focus: JValue, path: Path) {
 
   /** Move the focus left n times in an array */
   def leftN(n: Int): Option[JCursor] =
-    endoKleisli[Option, JCursor](_.left).multiply(n)(this)
+    endoKleisli[Option, JCursor](_.left).multiply(n).run(this)
 
   /** Move the focus right by one array element */
   def right: Option[JCursor] =
@@ -77,7 +77,7 @@ case class JCursor(focus: JValue, path: Path) {
 
   /** Move the focus right n times in an array */
   def rightN(n: Int): Option[JCursor] =
-    endoKleisli[Option, JCursor](_.right).multiply(n)(this)
+    endoKleisli[Option, JCursor](_.right).multiply(n).run(this)
 
   import EphemeralStream._
 
