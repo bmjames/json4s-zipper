@@ -9,7 +9,10 @@ The goal of this library is to implement purely functional modifications to immu
 
 This library depends on json4s-core, not on any of the json4s parsing libraries. To follow these examples, you'll need
 a project that depends on `json4s-native` or `json4s-jackson`. (Or, you'll need to construct the JSON example by hand
-using the AST.) If you have SBT installed, and the source for json4s-zipper, you can simply run `sbt test:console`.
+using the AST.)
+
+The tests for json4s-zipper use the native parser, so if you have SBT installed, and a copy of the source, you can run
+`sbt test:console` to try these examples.
 
 To start with, here is some JSON, parsed into the `JValue` AST.
 
@@ -38,14 +41,12 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
 
     val cursor = json.cursor // Create a cursor focusing on the root of the `JValue`
 
-    val updatedSoups = for {
+    val updatedCursor = for {
       a <- cursor.field("soups")         // Go to field "soups"
       b <- a.prepend(JString("borscht")) // Prepend to the array
     } yield b
 
-    val updatedJson = updatedSoups map (_.toJValue) // Get the resulting JSON
-
-    for (j <- updatedJson) println(compact(render(j)))
+    for (c <- updatedCursor) println(compact(render(c.toJson)))
     // {"soups":["borscht","goulash","gumbo","minestrone"]}
 
 ### Lenses
