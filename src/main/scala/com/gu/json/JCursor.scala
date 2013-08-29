@@ -28,6 +28,10 @@ case class JCursor(focus: JValue, path: Path) {
   def withFocusF[F[_] : Functor](f: JValue => F[JValue]): F[JCursor] =
     Functor[F].map(f(focus))(replace)
 
+  /** Replace the value at the focus with JNothing */
+  def setNothing: JCursor =
+    replace(JNothing)
+
   /** Delete the value at the focus, and move up one level */
   def deleteGoUp: Option[JCursor] =
     condOpt(path) {

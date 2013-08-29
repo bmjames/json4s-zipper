@@ -27,7 +27,7 @@ trait CursorArrow { self =>
 
 object CursorArrow {
 
-  protected type CursorResult[+A] = CursorFailure \/ A
+  type CursorResult[+A] = CursorFailure \/ A
 
   def apply(f: JCursor => CursorResult[JCursor]): CursorArrow =
     fromK(Kleisli(f))
@@ -70,12 +70,17 @@ object CursorArrows {
 
   def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
 
+  def setNothing = replace(JNothing)
+
   def eachElem(that: CursorArrow) = CursorArrow {
     case JCursor(JArray(elems), p) =>
       for (cursors <- that.run.traverse(elems map JCursor.jCursor))
       yield JCursor(JArray(cursors map (_.toJValue)), p)
     case cursor => fail(cursor, "eachElem")
   }
+
+  def try_(arr: CursorArrow): CursorArrow =
+    CursorArrow { cursor => arr.run(cursor) orElse cursor.pure[CursorResult] }
 
 }
 
