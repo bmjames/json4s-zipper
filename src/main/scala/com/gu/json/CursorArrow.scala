@@ -104,7 +104,7 @@ trait CursorArrowSyntax {
   object * extends CursorArrowBuilder {
     def apply(v1: CursorArrow) = eachElem(v1)
   }
-  
+
 }
 
 object CursorArrowSyntax extends CursorArrowSyntax
