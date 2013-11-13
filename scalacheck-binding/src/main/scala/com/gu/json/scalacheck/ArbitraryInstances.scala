@@ -10,7 +10,7 @@ class ArbitraryInstances[J](implicit J: JsonLike[J]) {
 
   // FIXME to avoid a SOE from generator recursion, arrays won't contain objects
   // FIXME also, making these lists much longer causes a SOE
-  def leaf: Gen[J] = Gen.oneOf(string, int, double, bool)
+  private def leaf: Gen[J] = Gen.oneOf(string, int, double, bool)
   def array: Gen[J] = Gen.listOfN(5, leaf).map(J.array(_))
 
   val obj: Gen[J] = Gen.listOfN(5, arbitrary[(String, J)]).map(J.obj(_))
