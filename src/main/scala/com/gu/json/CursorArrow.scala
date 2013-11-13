@@ -7,80 +7,85 @@ import scalaz.\/._
 import org.json4s.JsonAST._
 
 
-trait CursorArrow { self =>
+trait CursorArrow[J] { self =>
+
   import CursorArrow._
 
-  def run: Kleisli[CursorResult, JCursor, JCursor]
+  type Result[A] = CursorResult[J, A]
 
-  final def compose(that: CursorArrow): CursorArrow = fromK(self.run compose that.run)
-  final def andThen(that: CursorArrow): CursorArrow = that compose this
+  def run: Kleisli[Result, Cursor[J], Cursor[J]]
 
-  final def <=<(that: CursorArrow): CursorArrow = compose(that)
-  final def >=>(that: CursorArrow): CursorArrow = andThen(that)
+  final def compose(that: CursorArrow[J]): CursorArrow[J] = fromK(self.run compose that.run)
+  final def andThen(that: CursorArrow[J]): CursorArrow[J] = that compose this
 
-  final def <*(that: CursorArrow): CursorArrow = fromK(self.run <* that.run)
-  final def *>(that: CursorArrow): CursorArrow = fromK(self.run *> that.run)
+  final def <=<(that: CursorArrow[J]): CursorArrow[J] = compose(that)
+  final def >=>(that: CursorArrow[J]): CursorArrow[J] = andThen(that)
 
-  final def orElse(that: CursorArrow): CursorArrow = fromK(self.run <+> that.run)
+  final def <*(that: CursorArrow[J]): CursorArrow[J] = fromK(self.run <* that.run)
+  final def *>(that: CursorArrow[J]): CursorArrow[J] = fromK(self.run *> that.run)
+
+  final def orElse(that: CursorArrow[J]): CursorArrow[J] = fromK(self.run <+> that.run)
 
 }
 
 object CursorArrow {
 
-  type CursorResult[+A] = CursorFailure \/ A
+  type CursorResult[J, A] = CursorFailure[J] \/ A
 
-  def apply(f: JCursor => CursorResult[JCursor]): CursorArrow =
-    fromK(Kleisli(f))
+  def apply[J](f: Cursor[J] => CursorResult[J, Cursor[J]]): CursorArrow[J] =
+    fromK[J](Kleisli.kleisli[({type λ[α]=CursorResult[J, α]})#λ, Cursor[J], Cursor[J]](f))
 
-  def fromK(k: Kleisli[CursorResult, JCursor, JCursor]): CursorArrow =
-    new CursorArrow {
+  def fromK[J](k: Kleisli[({type λ[α]=CursorResult[J, α]})#λ, Cursor[J], Cursor[J]]): CursorArrow[J] =
+    new CursorArrow[J] {
       val run = k
     }
 
-  def withFailure(f: JCursor => Option[JCursor], msg: String): CursorArrow =
-    CursorArrow { cursor =>
+  def withFailure[J](f: Cursor[J] => Option[Cursor[J]], msg: String): CursorArrow[J] =
+    CursorArrow[J] { cursor =>
       f(cursor).toRightDisjunction(CursorFailure(cursor, msg))
     }
 
-  def fail[A](at: JCursor, msg: String): CursorResult[A] = -\/(CursorFailure(at, msg))
+  def fail[J, A](at: Cursor[J], msg: String): CursorResult[J, A] = -\/(CursorFailure(at, msg))
 
 }
 
 /** Data type representing the position of the cursor before the failed action,
   * with a message describing the action that failed.
   */
-case class CursorFailure(at: JCursor, msg: String)
+case class CursorFailure[J](at: Cursor[J], msg: String)
 
 object CursorArrows {
   import CursorArrow._
 
-  def field(name: String) = withFailure(_.field(name), "field(" + name + ")")
+  def field[J](name: String): CursorArrow[J] = withFailure(_.field(name), "field(" + name + ")")
 
-  def firstElem = withFailure(_.firstElem, "firstElem")
+  def firstElem[J]: CursorArrow[J] = withFailure(_.firstElem, "firstElem")
 
-  def elem(index: Int) = withFailure(_.elem(index), "elem(" + index + ")")
+  def elem[J](index: Int): CursorArrow[J] = withFailure(_.elem(index), "elem(" + index + ")")
 
-  def replace(newFocus: JValue) = CursorArrow(right compose (_.replace(newFocus)))
+  def replace[J](newFocus: J) = CursorArrow[J](right compose (_.replace(newFocus)))
 
-  def prepend(elem: JValue) = withFailure(_.prepend(elem), "prepend(" + elem + ")")
+  def prepend[J](elem: J): CursorArrow[J] = withFailure(_.prepend(elem), "prepend(" + elem + ")")
 
-  def mod(f: JValue => JValue) = CursorArrow { cursor => \/-(cursor.withFocus(f)) }
+  def mod[J](f: J => J) = CursorArrow[J] { cursor => \/-(cursor.withFocus(f)) }
   
-  def transform(pfn: PartialFunction[JValue, JValue]) = CursorArrow { cursor => \/-(cursor.transform(pfn)) }
+  def transform[J](pfn: PartialFunction[J, J]) = CursorArrow[J] { cursor => \/-(cursor.transform(pfn)) }
 
-  def deleteGoUp = withFailure(_.deleteGoUp, "deleteGoUp")
+  def deleteGoUp[J]: CursorArrow[J] = withFailure(_.deleteGoUp, "deleteGoUp")
 
-  def setNothing = replace(JNothing)
+  def setNothing[J](implicit J: JsonLike[J]): CursorArrow[J] = replace(J.nothing)
 
-  def eachElem(that: CursorArrow) = CursorArrow {
-    case JCursor(JArray(elems), p) =>
-      for (cursors <- that.run.traverse(elems map JCursor.jCursor))
-      yield JCursor(JArray(cursors map (_.toJValue)), p)
-    case cursor => fail(cursor, "eachElem")
+  def eachElem[J](that: CursorArrow[J])(implicit J: JsonLike[J]) = CursorArrow[J] { case cursor @ Cursor(focus, p) =>
+    J.asArray(focus) match {
+      case Some(elems) =>
+        for (cursors <- that.run.traverse(elems map Cursor.cursor[J]))
+        yield Cursor(J.array(cursors map (_.toJson)), p)
+      case None => fail(cursor, "eachElem")
+    }
   }
 
-  def try_(arr: CursorArrow): CursorArrow =
-    CursorArrow { cursor => arr.run(cursor) orElse cursor.pure[CursorResult] }
+  def try_[J](arr: CursorArrow[J]): CursorArrow[J] =
+    CursorArrow[J] { cursor => arr.run(cursor) orElse cursor.pure[({type λ[α]=CursorResult[J, α]})#λ] }
 
 }
 
@@ -89,20 +94,20 @@ trait CursorArrowSyntax {
   
   import CursorArrows._
 
-  type CursorArrowBuilder = CursorArrow => CursorArrow
+  type CursorArrowBuilder[J] = CursorArrow[J] => CursorArrow[J]
 
-  implicit class BuilderOps(self: CursorArrowBuilder) {
-    def \(that: String): CursorArrowBuilder = arr => self(field(that) >=> arr)
-    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => self(that(arr))
+  implicit class BuilderOps[J : JsonLike](self: CursorArrowBuilder[J]) {
+    def \(that: String): CursorArrowBuilder[J] = arr => self(field(that) >=> arr)
+    def \(that: CursorArrowBuilder[J]): CursorArrowBuilder[J] = arr => self(that(arr))
   }
 
-  implicit class CursorStateExpr(self: String) {
-    def \(that: String): CursorArrowBuilder = field(self) >=> field(that) >=> _
-    def \(that: CursorArrowBuilder): CursorArrowBuilder = arr => field(self) >=> that(arr)
+  implicit class CursorStateExpr[J : JsonLike](self: String) {
+    def \(that: String): CursorArrowBuilder[J] = field(self) >=> field(that) >=> _
+    def \(that: CursorArrowBuilder[J]): CursorArrowBuilder[J] = arr => field(self) >=> that(arr)
   }
 
-  object * extends CursorArrowBuilder {
-    def apply(v1: CursorArrow) = eachElem(v1)
+  def * [J : JsonLike] = new CursorArrowBuilder[J] {
+    def apply(v1: CursorArrow[J]) = eachElem(v1)
   }
 
 }

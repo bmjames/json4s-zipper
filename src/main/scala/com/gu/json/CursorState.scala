@@ -20,15 +20,16 @@ import scalaz.{ Kleisli, MonadState, MonadPlus, StateT }
   *   field("uselessData") >> deleteGoUp
   *
   */
+/*
 object CursorState {
 
   protected type OptionState[S, A] = StateT[Option, S, A]
 
-  type CursorState[A] = OptionState[JCursor, A]
+  type CursorState[A] = OptionState[Cursor, A]
 
-  val monadState = MonadState[OptionState, JCursor]
+  val monadState = MonadState[OptionState, Cursor]
 
-  def apply[A](f: JCursor => Option[(JCursor, A)]): CursorState[A] = StateT(f)
+  def apply[A](f: Cursor => Option[(Cursor, A)]): CursorState[A] = StateT(f)
 
   def replace(value: JValue): CursorState[Unit] =
     CursorState(cursor => Some(cursor.replace(value), ()))
@@ -83,7 +84,7 @@ object CursorState {
     CursorState(cursor => cursor.keySet map (cursor ->))
 
   /** Run the supplied function over the state value and return the resulting focus */
-  def returnFocus(f: JCursor => Option[JCursor]): CursorState[JValue] =
+  def returnFocus(f: Cursor => Option[Cursor]): CursorState[JValue] =
     CursorState(f andThen (_ map (c => c -> c.focus)))
 
   def getFocus: CursorState[JValue] = monadState.init map (_.focus)
@@ -99,12 +100,12 @@ object CursorState {
       _ <- monadState.put(s)
     } yield a
 
-  import JCursor.jCursor
+  import Cursor.jCursor
 
   def foreach[A](cmd: CursorState[A]): CursorState[JArray] =
     for {
       JArray(children) <- getFocus
-      Some(cs) <- children.traverse(c => cmd.exec(jCursor(c)).map(_.toJValue)).point[CursorState]
+      Some(cs) <- children.traverse(c => cmd.exec(jCursor(c)).map(_.toJson)).point[CursorState]
       newFocus = JArray(cs)
       _ <- replace(newFocus)
     } yield newFocus
@@ -146,3 +147,4 @@ object CursorState {
   }
 
 }
+*/

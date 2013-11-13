@@ -1,5 +1,7 @@
 package com.gu.json
 
+/*
+
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
 import org.json4s._
@@ -11,6 +13,7 @@ import JValueSyntax._
 
 /** Contrived examples to demonstrate how to compose and run CursorState functions
   */
+
 class CursorStateExamples extends FunSuite with ShouldMatchers {
 
   val json = parse(
@@ -159,3 +162,4 @@ class CursorStateExamples extends FunSuite with ShouldMatchers {
   }
 
 }
+*/

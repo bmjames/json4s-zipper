@@ -1,54 +1,53 @@
 package com.gu.json
 
-import org.json4s.JsonAST.{JInt, JString, JValue}
 import scalaz.Scalaz._
 import scalaz.\/
 
 import CursorArrowSyntax.CursorArrowBuilder
-import CursorState._
+//import CursorState._
 
 
-final class JValueOps(value: JValue) {
+final class JValueOps[J](value: J) {
 
-  def cursor: JCursor = JCursor.jCursor(value)
+  def cursor(implicit ev: JsonLike[J]): Cursor[J] = Cursor.cursor(value)
 
-  def removeAt[A](command: CursorState[A]): JValue =
-    execDefault(command >> deleteGoUp)
+//  def removeAt[A](command: CursorState[A]): JValue =
+//    execDefault(command >> deleteGoUp)
 
-  def delete(builder: CursorArrowBuilder): JValue =
+  def delete(builder: CursorArrowBuilder[J])(implicit ev: JsonLike[J]): J =
     runDefault(builder(CursorArrows.deleteGoUp))
 
-  def mod(builder: CursorArrowBuilder)(f: JValue => JValue): JValue =
+  def mod(builder: CursorArrowBuilder[J])(f: J => J)(implicit ev: JsonLike[J]): J =
     runDefault(builder(CursorArrows.mod(f)))
     
-  def modp(builder: CursorArrowBuilder)(pfn: PartialFunction[JValue, JValue]): JValue =
+  def modp(builder: CursorArrowBuilder[J])(pfn: PartialFunction[J, J])(implicit ev: JsonLike[J]): J =
     runDefault(builder(CursorArrows.transform(pfn)))
 
-  def eval[A](command: CursorState[A]): Option[A] =
+/*  def eval[A](command: CursorState[A]): Option[A] =
     command.eval(cursor)
 
   def exec(command: CursorState[_]): Option[JValue] =
-    command.exec(cursor) map (_.toJValue)
+    command.exec(cursor) map (_.toJson)
 
   def execDefault(command: CursorState[_]): JValue =
-    exec(command) getOrElse value
+    exec(command) getOrElse value*/
 
-  def run(arrow: CursorArrow): CursorFailure \/ JValue =
-    arrow.run(cursor).map (_.toJValue)
+  def run(arrow: CursorArrow[J])(implicit ev: JsonLike[J]): CursorFailure[J] \/ J =
+    arrow.run(cursor).map (_.toJson)
 
-  def runDefault(arrow: CursorArrow): JValue =
+  def runDefault(arrow: CursorArrow[J])(implicit ev: JsonLike[J]): J =
     run(arrow) getOrElse value
 
-  def stringValue: Option[String] =
+  def stringValue(implicit ev: JsonLike[J]): Option[String] =
     Lenses.strVal.get(value)
 
-  def bigIntValue: Option[BigInt] =
+  def bigIntValue(implicit ev: JsonLike[J]): Option[BigInt] =
     Lenses.intVal.get(value)
 
 }
 
 trait JValueSyntax {
-  implicit def toJValueOps(value: JValue): JValueOps = new JValueOps(value)
+  implicit def toJValueOps[J : JsonLike](value: J): JValueOps[J] = new JValueOps(value)
 }
 
 object JValueSyntax extends JValueSyntax

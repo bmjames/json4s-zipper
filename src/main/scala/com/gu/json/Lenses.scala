@@ -6,45 +6,45 @@ import scalaz._, Scalaz._
 
 object Lenses {
 
-  def field(name: String): JValue @?> JValue = mkPLens(_.field(name))
+  def field[J : JsonLike](name: String): J @?> J = mkPLens(_.field(name))
 
-  def elem(index: Int): JValue @?> JValue = mkPLens(_.elem(index))
+  def elem[J : JsonLike](index: Int): J @?> J = mkPLens(_.elem(index))
 
-  def strVal: JValue @?> String = mkPLensP {
-    case JString(s) => Store(JString.apply, s)
+  def strVal[J](implicit J: JsonLike[J]): J @?> String = PLens { j =>
+    J.asString(j) map (s => Store(J.string, s))
   }
 
-  def intVal: JValue @?> BigInt = mkPLensP {
-    case JInt(i) => Store(JInt.apply, i)
+  def intVal[J](implicit J: JsonLike[J]): J @?> BigInt = PLens { j =>
+    J.asInt(j) map (i => Store(J.int, i))
   }
 
-  def doubleVal: JValue @?> Double = mkPLensP {
-    case JDouble(d) => Store(JDouble.apply, d)
+  def doubleVal[J](implicit J: JsonLike[J]): J @?> Double = PLens { j =>
+    J.asDouble(j) map (i => Store(J.double, i))
   }
 
-  def decimalVal: JValue @?> BigDecimal = mkPLensP {
-    case JDecimal(d) => Store(JDecimal.apply, d)
+//  def decimalVal: JValue @?> BigDecimal = mkPLensP {
+//    case JDecimal(d) => Store(JDecimal.apply, d)
+//  }
+
+  def boolVal[J](implicit J: JsonLike[J]): J @?> Boolean = PLens { j =>
+    J.asBool(j) map (b => Store(J.bool, b))
   }
 
-  def boolVal: JValue @?> Boolean = mkPLensP {
-    case JBool(b) => Store(JBool.apply, b)
+  def elems[J](implicit J: JsonLike[J]): J @?> List[J] = PLens { j =>
+    J.asArray(j) map (es => Store(J.array, es))
   }
 
-  def elems: JValue @?> List[JValue] = mkPLensP {
-    case JArray(elems) => Store(JArray.apply, elems)
+  def fields[J](implicit J: JsonLike[J]): J @?> List[(String, J)] = PLens { j =>
+    J.asObj(j) map (fs => Store(J.obj, fs))
   }
 
-  def fields: JValue @?> List[JField] = mkPLensP {
-    case JObject(fields) => Store(JObject.apply, fields)
-  }
+//  def mkPLensP[A](pfn: PartialFunction[JValue, Store[A, JValue]]): JValue @?> A =
+//    PLens(pfn.lift)
 
-  def mkPLensP[A](pfn: PartialFunction[JValue, Store[A, JValue]]): JValue @?> A =
-    PLens(pfn.lift)
-
-  def mkPLens(f: JCursor => Option[JCursor]): JValue @?> JValue =
+  def mkPLens[J : JsonLike](f: Cursor[J] => Option[Cursor[J]]): J @?> J =
     PLens { jValue =>
-      for (c <- f(JCursor.jCursor(jValue))) yield Store(
-        newFocus => c.replace(newFocus).toJValue,
+      for (c <- f(Cursor.cursor(jValue))) yield Store(
+        newFocus => c.replace(newFocus).toJson,
         c.focus
       )
     }

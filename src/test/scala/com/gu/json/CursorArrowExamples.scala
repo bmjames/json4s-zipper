@@ -106,15 +106,15 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Guard an action using <*") {
 
-    json runDefault field("assets") <* field("flibbles") >=> deleteGoUp should be (json)
+    json.runDefault { field("assets") <* field("flibbles") >=> deleteGoUp } should be (json)
 
   }
 
   test("Retry an action with orElse") {
 
-    val actionWithRetry = field("flibbles") orElse field("assets") >=> elem(1) >=> deleteGoUp
+    val actionWithRetry: CursorArrow[JValue] = field("flibbles") orElse field("assets") >=> elem(1) >=> deleteGoUp
 
-    json run actionWithRetry should equal (\/-(parse(
+    json.run(actionWithRetry) should equal (\/-(parse(
       """
       {
         "type":"image",
@@ -151,9 +151,9 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Error reporting") {
 
-    val failingAction = field("type") >=> elem(0)
+    val failingAction: CursorArrow[JValue] = field("type") >=> elem(0)
 
-    val failure: Option[CursorFailure] = json.run(failingAction).swap.toOption
+    val failure: Option[CursorFailure[JValue]] = json.run(failingAction).swap.toOption
 
     // Reports the action that failed
     failure.map(_.msg) should be (Some("elem(0)"))
