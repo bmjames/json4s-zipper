@@ -12,31 +12,39 @@ object Build extends Build {
     scalacOptions ++= Seq("-feature", "-deprecation", "-language:higherKinds", "-Xfatal-warnings")
   )
 
-  val scalazDependencies = Seq("org.scalaz" %% "scalaz-core" % "7.1.0-M2")
-
-  val testDependencies = Seq(
-    "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-    "org.json4s" %% "json4s-native" % "3.2.4" % "test"
-  )
+  val scalazVersion = "7.1.0-M2"
+  val scalacheckVersion = "1.11.0"
+  val json4sVersion = "3.2.4"
 
   val core = Project("core", file("core"))
     .settings(commonSettings ++ publishSettings: _*)
     .settings(
       name := "json-zipper-core",
-      libraryDependencies ++= scalazDependencies ++ testDependencies
+      libraryDependencies += "org.scalaz" %% "scalaz-core" % scalazVersion
     )
 
-  val json4s = Project("json4s", file("json4s"))
+  val scalacheckBinding = Project("scalacheck-binding", file("scalacheck-binding"))
     .dependsOn(core)
+    .settings(commonSettings ++ publishSettings: _*)
+    .settings(name := "json-zipper-scalacheck-binding")
+    .settings(libraryDependencies += "org.scalacheck" %% "scalacheck" % scalacheckVersion)
+
+  val json4s = Project("json4s", file("json4s"))
+    .dependsOn(core, scalacheckBinding)
     .settings(commonSettings ++ publishSettings: _*)
     .settings(
       name := "json-zipper-json4s",
-      libraryDependencies += "org.json4s" %% "json4s-core" % "3.2.4"
-    )
+      libraryDependencies ++= Seq(
+        "org.json4s" %% "json4s-core" % json4sVersion,
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test"
+      ))
 
   val test = Project("test", file("test"))
     .dependsOn(core, json4s)
-    .settings(libraryDependencies ++= testDependencies)
+    .settings(libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.json4s" %% "json4s-native" % json4sVersion % "test"
+    ))
 
   def publishSettings = Seq(
     publishArtifact := true,

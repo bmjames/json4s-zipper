@@ -22,7 +22,9 @@ trait JsonLike[J] {
 
 object JsonLike {
   def apply[J](implicit ev: JsonLike[J]): JsonLike[J] = ev
+}
 
+object Json {
   def nothing[J : JsonLike]: J = JsonLike[J].nothing
   def array[J : JsonLike](elems: Seq[J]): J = JsonLike[J].array(elems)
   def obj[J : JsonLike](fields: Seq[(String, J)]): J = JsonLike[J].obj(fields)
@@ -37,4 +39,15 @@ object JsonLike {
   def asInt[J : JsonLike](j: J): Option[BigInt] = JsonLike[J].asInt(j)
   def asDouble[J : JsonLike](j: J): Option[Double] = JsonLike[J].asDouble(j)
   def asBool[J : JsonLike](j: J): Option[Boolean] = JsonLike[J].asBool(j)
+}
+
+class JsonLikeLaws[J](implicit J: JsonLike[J]) {
+
+  def array(elems: List[J]): Boolean = J.asArray(J.array(elems)) == Some(elems)
+  def obj(fields: List[(String, J)]): Boolean = J.asObj(J.obj(fields)) == Some(fields)
+  def string(s: String): Boolean = J.asString(J.string(s)) == Some(s)
+  def int(i: BigInt): Boolean = J.asInt(J.int(i)) == Some(i)
+  def double(d: Double): Boolean = J.asDouble(J.double(d)) == Some(d)
+  def bool(b: Boolean): Boolean = J.asBool(J.bool(b)) == Some(b)
+
 }
