@@ -6,11 +6,14 @@ import com.gu.json.JsonLike
 
 class ArbitraryInstances[J](implicit J: JsonLike[J]) {
 
-  implicit def json: Arbitrary[J] = Arbitrary(Gen.oneOf(obj, string, int, double, bool))
+  implicit def json: Arbitrary[J] = Arbitrary(Gen.oneOf(obj, array, string, int, double, bool))
 
-  // FIXME these lists can't get much longer without causing a SOE from generator recursion
-  val array: Gen[J] = Gen.listOfN(4, arbitrary[J]).map(J.array(_))
-  val obj: Gen[J] = Gen.listOfN(4, arbitrary[(String, J)]).map(J.obj(_))
+  // FIXME to avoid a SOE from generator recursion, arrays won't contain objects
+  // FIXME also, making these lists much longer causes a SOE
+  def leaf: Gen[J] = Gen.oneOf(string, int, double, bool)
+  def array: Gen[J] = Gen.listOfN(5, leaf).map(J.array(_))
+
+  val obj: Gen[J] = Gen.listOfN(5, arbitrary[(String, J)]).map(J.obj(_))
 
   val string: Gen[J] = arbitrary[String].map(J.string(_))
 
