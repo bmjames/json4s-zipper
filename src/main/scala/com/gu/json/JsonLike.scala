@@ -12,9 +12,6 @@ trait JsonLike[J] {
   def double(d: Double): J
   def bool(b: Boolean): J
 
-  def isArray(j: J): Boolean
-  def isObj(j: J): Boolean
-
   def asArray(j: J): Option[List[J]]
   def asObj(j: J): Option[List[(String, J)]]
   def asString(j: J): Option[String]
@@ -32,9 +29,6 @@ trait JsonLikeInstances {
     def int(i: BigInt) = JInt(i)
     def double(d: Double) = JDouble(d)
     def bool(b: Boolean) = JBool(b)
-
-    def isArray(j: JValue) = cond(j) { case JArray(_) => true }
-    def isObj(j: JValue) = cond(j) { case JObject(_) => true }
 
     def asArray(j: JValue) = condOpt(j) { case JArray(elems) => elems }
     def asObj(j: JValue) = condOpt(j) { case JObject(fields) => fields }
