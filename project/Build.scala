@@ -22,7 +22,7 @@ object Build extends Build {
   val core = Project("core", file("core"))
     .settings(commonSettings ++ publishSettings: _*)
     .settings(
-      name := "core",
+      name := "json-zipper-core",
       libraryDependencies ++= scalazDependencies ++ testDependencies
     )
 
@@ -30,7 +30,7 @@ object Build extends Build {
     .dependsOn(core)
     .settings(commonSettings ++ publishSettings: _*)
     .settings(
-      name := "json4s",
+      name := "json-zipper-json4s",
       libraryDependencies += "org.json4s" %% "json4s-core" % "3.2.4"
     )
 
