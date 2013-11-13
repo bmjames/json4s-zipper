@@ -5,6 +5,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 import org.json4s.JsonAST._
 import com.gu.json.Cursor.InArray
+import com.gu.json.json4s._
 
 class CursorTest extends FunSuite with ShouldMatchers {
 

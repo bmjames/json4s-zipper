@@ -4,8 +4,6 @@ import scalaz._
 import scalaz.Scalaz._
 import scalaz.\/._
 
-import org.json4s.JsonAST._
-
 
 trait CursorArrow[J] { self =>
 

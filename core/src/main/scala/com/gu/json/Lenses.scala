@@ -1,7 +1,6 @@
 package com.gu.json
 
-import org.json4s.JsonAST._
-import scalaz._, Scalaz._
+import scalaz.{@?>, PLens, PState, OptionT, IndexedStateT, Id, Store}
 
 
 object Lenses {

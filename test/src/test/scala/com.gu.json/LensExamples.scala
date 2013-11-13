@@ -2,11 +2,10 @@ package com.gu.json
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
+
 import org.json4s._
 import org.json4s.native.JsonMethods._
-
-import scalaz._, Scalaz._
-
+import com.gu.json.json4s._
 import Lenses._
 
 
@@ -48,7 +47,7 @@ class LensExamples extends FunSuite with ShouldMatchers {
 
   test("Getting a value") {
 
-    (field("assets") >>> elem(1)).get(json) should be (Some(parse("""
+    (field("assets") >=> elem(1)).get(json) should be (Some(parse("""
       {
         "type":"image/png",
         "file":"foo.png"
@@ -70,7 +69,7 @@ class LensExamples extends FunSuite with ShouldMatchers {
 
   test("Modifying a value") {
 
-    val firstFilename = field("assets") >>> elem(0) >>> field("file") >>> strVal
+    val firstFilename = field("assets") >=> elem(0) >=> field("file") >=> strVal
 
     firstFilename.mod(_.stripSuffix(".jpg"), json) should be (parse("""
       {

@@ -2,14 +2,13 @@ package com.gu.json
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
+
+import scalaz.\/-
 import org.json4s._
 import org.json4s.native.JsonMethods._
-
-import scalaz._
-import scalaz.\/-
-
-import CursorArrows._
 import com.gu.json.syntax._
+import com.gu.json.json4s._
+import CursorArrows._
 
 
 class CursorArrowExamples extends FunSuite with ShouldMatchers {
@@ -34,7 +33,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Remove a field") {
 
-    json runDefault field("type") >=> deleteGoUp should be (parse(
+    json.runDefault { field("type") >=> deleteGoUp } should be (parse(
       """
       {
         "assets":[
@@ -55,7 +54,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
   test("Replace the value of a field") {
 
-    json runDefault field("type") >=> replace(JString("picture")) should be (parse(
+    json.runDefault { field("type") >=> replace(JString("picture")) } should be (parse(
       """
       {
         "type":"picture",

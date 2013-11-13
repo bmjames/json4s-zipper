@@ -1,26 +1,11 @@
-package com.gu.json
+package com.gu.json.json4s
 
 import scala.PartialFunction._
-import org.json4s.JsonAST._
-
-trait JsonLike[J] {
-  def nothing: J
-  def array(elems: Seq[J]): J
-  def obj(fields: Seq[(String, J)]): J
-  def string(s: String): J
-  def int(s: BigInt): J
-  def double(d: Double): J
-  def bool(b: Boolean): J
-
-  def asArray(j: J): Option[List[J]]
-  def asObj(j: J): Option[List[(String, J)]]
-  def asString(j: J): Option[String]
-  def asInt(j: J): Option[BigInt]
-  def asDouble(j: J): Option[Double]
-  def asBool(j: J): Option[Boolean]
-}
+import org.json4s._
+import com.gu.json.JsonLike
 
 trait JsonLikeInstances {
+
   implicit val json4sJsonLike: JsonLike[JValue] = new JsonLike[JValue] {
     val nothing = JNothing
     def array(elems: Seq[JValue]) = JArray(elems.toList)
@@ -37,6 +22,7 @@ trait JsonLikeInstances {
     def asDouble(j: JValue) = condOpt(j) { case JDouble(d) => d }
     def asBool(j: JValue) = condOpt(j) { case JBool(b) => b }
   }
+
 }
 
-object JsonLike extends JsonLikeInstances
+object JsonLikeInstances extends JsonLikeInstances

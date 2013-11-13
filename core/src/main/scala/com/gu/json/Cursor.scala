@@ -2,7 +2,10 @@ package com.gu.json
 
 import scala.annotation.tailrec
 import scala.PartialFunction._
-import scalaz._, Scalaz._
+
+import scalaz.{Endomorphic, EphemeralStream, Functor}
+import scalaz.std.option._
+import scalaz.syntax.monoid._
 
 import Endomorphic._
 import Cursor._

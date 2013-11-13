@@ -1,5 +1,7 @@
 package com.gu.json
 
+/*
+
 import org.json4s.JsonAST._
 import scalaz.Scalaz._
 import scalaz.{ Kleisli, MonadState, MonadPlus, StateT }
@@ -20,7 +22,7 @@ import scalaz.{ Kleisli, MonadState, MonadPlus, StateT }
   *   field("uselessData") >> deleteGoUp
   *
   */
-/*
+
 object CursorState {
 
   protected type OptionState[S, A] = StateT[Option, S, A]
