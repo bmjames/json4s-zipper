@@ -1,46 +1,50 @@
 package com.gu.json
 
 import scalaz.\/
+import scalaz.std.option._
+import scalaz.syntax.bind._
+
 import CursorArrowSyntax.CursorArrowBuilder
+import com.gu.json.CursorState._
 
 
 trait JValueSyntax {
 
-  implicit class JValueOps[J](value: J) {
+  implicit class JValueOps[J : JsonLike](value: J) {
 
-    def cursor(implicit ev: JsonLike[J]): Cursor[J] = Cursor.cursor(value)
+    def cursor: Cursor[J] = Cursor.cursor(value)
 
-    //  def removeAt[A](command: CursorState[A]): JValue =
-    //    execDefault(command >> deleteGoUp)
+    def removeAt[A](command: CursorState[J, A]): J =
+      execDefault(command >> deleteGoUp[J])
 
-    def delete(builder: CursorArrowBuilder[J])(implicit ev: JsonLike[J]): J =
+    def delete(builder: CursorArrowBuilder[J]): J =
       runDefault(builder(CursorArrows.deleteGoUp))
 
-    def mod(builder: CursorArrowBuilder[J])(f: J => J)(implicit ev: JsonLike[J]): J =
+    def mod(builder: CursorArrowBuilder[J])(f: J => J): J =
       runDefault(builder(CursorArrows.mod(f)))
 
-    def modp(builder: CursorArrowBuilder[J])(pfn: PartialFunction[J, J])(implicit ev: JsonLike[J]): J =
+    def modp(builder: CursorArrowBuilder[J])(pfn: PartialFunction[J, J]): J =
       runDefault(builder(CursorArrows.transform(pfn)))
 
-    /*  def eval[A](command: CursorState[A]): Option[A] =
-        command.eval(cursor)
+    def eval[A](command: CursorState[J, A]): Option[A] =
+      command.eval(cursor)
 
-      def exec(command: CursorState[_]): Option[JValue] =
-        command.exec(cursor) map (_.toJson)
+    def exec[A](command: CursorState[J, A]): Option[J] =
+      command.exec(cursor) map (_.toJson)
 
-      def execDefault(command: CursorState[_]): JValue =
-        exec(command) getOrElse value*/
+    def execDefault[A](command: CursorState[J, A]): J =
+      exec(command) getOrElse value
 
-    def run(arrow: CursorArrow[J])(implicit ev: JsonLike[J]): CursorFailure[J] \/ J =
+    def run(arrow: CursorArrow[J]): CursorFailure[J] \/ J =
       arrow.run(cursor).map (_.toJson)
 
-    def runDefault(arrow: CursorArrow[J])(implicit ev: JsonLike[J]): J =
+    def runDefault(arrow: CursorArrow[J]): J =
       run(arrow) getOrElse value
 
-    def stringValue(implicit ev: JsonLike[J]): Option[String] =
+    def stringValue: Option[String] =
       Lenses.strVal.get(value)
 
-    def bigIntValue(implicit ev: JsonLike[J]): Option[BigInt] =
+    def bigIntValue: Option[BigInt] =
       Lenses.intVal.get(value)
 
   }

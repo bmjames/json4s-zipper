@@ -1,10 +1,7 @@
 package com.gu.json
 
-/*
-
-import org.json4s.JsonAST._
 import scalaz.Scalaz._
-import scalaz.{ Kleisli, MonadState, MonadPlus, StateT }
+import scalaz.{MonadState, MonadPlus, StateT}
 
 /** Represents a transition, which may succeed or fail, from a cursor, to an updated cursor
   * together with a value: JCursor => Option[(JCursor, A)]
@@ -22,79 +19,78 @@ import scalaz.{ Kleisli, MonadState, MonadPlus, StateT }
   *   field("uselessData") >> deleteGoUp
   *
   */
-
 object CursorState {
 
   protected type OptionState[S, A] = StateT[Option, S, A]
 
-  type CursorState[A] = OptionState[Cursor, A]
+  type CursorState[J, A] = OptionState[Cursor[J], A]
 
-  val monadState = MonadState[OptionState, Cursor]
+  def monadState[J] = MonadState[OptionState, Cursor[J]]
 
-  def apply[A](f: Cursor => Option[(Cursor, A)]): CursorState[A] = StateT(f)
+  def apply[J, A](f: Cursor[J] => Option[(Cursor[J], A)]): CursorState[J, A] = StateT(f)
 
-  def replace(value: JValue): CursorState[Unit] =
+  def replace[J](value: J): CursorState[J, Unit] =
     CursorState(cursor => Some(cursor.replace(value), ()))
 
-  def transform(pfn: PartialFunction[JValue, JValue]): CursorState[JValue] =
+  def transform[J](pfn: PartialFunction[J, J]): CursorState[J, J] =
     returnFocus(_.transform(pfn).some)
 
-  def field(name: String): CursorState[JValue] = returnFocus(_.field(name))
+  def field[J](name: String): CursorState[J, J] = returnFocus(_.field(name))
 
-  def sibling(name: String): CursorState[JValue] = returnFocus(_.sibling(name))
+  def sibling[J](name: String): CursorState[J, J] = returnFocus(_.sibling(name))
 
-  def insertChildField(name: String, value: JValue): CursorState[JValue] =
+  def insertChildField[J](name: String, value: J): CursorState[J, J] =
     returnFocus(_.insertField(name, value))
 
-  def insertFieldLeft(name: String, value: JValue): CursorState[JValue] =
+  def insertFieldLeft[J](name: String, value: J): CursorState[J, J] =
     returnFocus(_.insertFieldLeft(name, value))
 
-  def insertFieldRight(name: String, value: JValue): CursorState[JValue] =
+  def insertFieldRight[J](name: String, value: J): CursorState[J, J] =
     returnFocus(_.insertFieldRight(name, value))
 
-  def rename(name: String): CursorState[JValue] = returnFocus(_.rename(name))
+  def rename[J](name: String): CursorState[J, J] = returnFocus(_.rename(name))
 
-  def insertLeft(elem: JValue): CursorState[JValue] = returnFocus(_.insertLeft(elem))
+  def insertLeft[J](elem: J): CursorState[J, J] = returnFocus(_.insertLeft(elem))
 
-  def insertRight(elem: JValue): CursorState[JValue] = returnFocus(_.insertRight(elem))
+  def insertRight[J](elem: J): CursorState[J, J] = returnFocus(_.insertRight(elem))
 
-  def left: CursorState[JValue] = returnFocus(_.left)
+  def left[J]: CursorState[J, J] = returnFocus(_.left)
 
-  def leftN(n: Int): CursorState[JValue] =
-    left.replicateM_(n) >> getFocus
+  def leftN[J](n: Int): CursorState[J, J] =
+    left[J].replicateM_(n) >> getFocus
 
-  def right: CursorState[JValue] = returnFocus(_.right)
+  def right[J]: CursorState[J, J] = returnFocus(_.right)
 
-  def rightN(n: Int): CursorState[JValue] =
-    right.replicateM_(n) >> getFocus
+  def rightN[J](n: Int): CursorState[J, J] =
+    right[J].replicateM_(n) >> getFocus
 
-  def findLeft(pfn: PartialFunction[JValue, Boolean]) = returnFocus(_.findLeft(pfn))
+  def findLeft[J](pfn: PartialFunction[J, Boolean]): CursorState[J, J] = returnFocus(_.findLeft(pfn))
 
-  def head: CursorState[JValue] = returnFocus(_.firstElem)
+  def head[J]: CursorState[J, J] = returnFocus(_.firstElem)
 
-  def elem(n: Int): CursorState[JValue] = head >> rightN(n)
+  def elem[J](n: Int): CursorState[J, J] = head[J] >> rightN(n)
 
-  def up: CursorState[JValue] = returnFocus(_.up)
+  def up[J]: CursorState[J, J] = returnFocus(_.up)
 
-  def deleteGoUp: CursorState[JValue] = returnFocus(_.deleteGoUp)
+  def deleteGoUp[J]: CursorState[J, J] = returnFocus(_.deleteGoUp)
 
-  def removeField(name: String): CursorState[JValue] = field(name) >> deleteGoUp
+  def removeField[J](name: String): CursorState[J, J] = field[J](name) >> deleteGoUp
 
-  def root: CursorState[JValue] = returnFocus(_.root.some)
+  def root[J]: CursorState[J, J] = returnFocus(_.root.some)
 
-  def keySet: CursorState[Set[String]] =
-    CursorState(cursor => cursor.keySet map (cursor ->))
+  def keySet[J]: CursorState[J, Set[String]] =
+    CursorState(cursor => cursor.keySet map (cursor -> _))
 
   /** Run the supplied function over the state value and return the resulting focus */
-  def returnFocus(f: Cursor => Option[Cursor]): CursorState[JValue] =
+  def returnFocus[J](f: Cursor[J] => Option[Cursor[J]]): CursorState[J, J] =
     CursorState(f andThen (_ map (c => c -> c.focus)))
 
-  def getFocus: CursorState[JValue] = monadState.init map (_.focus)
+  def getFocus[J]: CursorState[J, J] = monadState.init map (_.focus)
 
-  def orElse[A](a: CursorState[A], b: => CursorState[A]): CursorState[A] =
+  def orElse[J, A](a: CursorState[J, A], b: => CursorState[J, A]): CursorState[J, A] =
     CursorState(cursor => a(cursor) orElse b(cursor))
 
-  def having[A, B](ca: CursorState[A], cb: CursorState[B]): CursorState[A] =
+  def having[J, A, B](ca: CursorState[J, A], cb: CursorState[J, B]): CursorState[J, A] =
     for {
       a <- ca
       s <- monadState.init
@@ -102,25 +98,25 @@ object CursorState {
       _ <- monadState.put(s)
     } yield a
 
-  import Cursor.jCursor
+  import Cursor.cursor
 
-  def foreach[A](cmd: CursorState[A]): CursorState[JArray] =
+  def foreach[J, A](cmd: CursorState[J, A])(implicit J: JsonLike[J]): CursorState[J, J] =
     for {
-      JArray(children) <- getFocus
-      Some(cs) <- children.traverse(c => cmd.exec(jCursor(c)).map(_.toJson)).point[CursorState]
-      newFocus = JArray(cs)
+      Some(children) <- getFocus[J] map (J.asArray(_))
+      Some(cs) <- children.traverse(c => cmd.exec(cursor(c)).map(_.toJson)).point[({type λ[α]=CursorState[J, α]})#λ]
+      newFocus = J.array(cs)
       _ <- replace(newFocus)
     } yield newFocus
 
-  implicit class CursorStateOps[A](self: CursorState[A]) {
+  implicit class CursorStateOps[J, A](self: CursorState[J, A]) {
 
-    def orElse(onFailure: => CursorState[A]): CursorState[A] =
+    def orElse(onFailure: => CursorState[J, A]): CursorState[J, A] =
       CursorState.orElse(self, onFailure)
 
-    def having[B](guard: CursorState[B]): CursorState[A] =
+    def having[B](guard: CursorState[J, B]): CursorState[J, A] =
       CursorState.having(self, guard)
 
-    def foreach[A](cmd: CursorState[A]): CursorState[JArray] =
+    def foreach[B](cmd: CursorState[J, B])(implicit ev: JsonLike[J]): CursorState[J, J] =
       self >> CursorState.foreach(cmd)
   }
 
@@ -132,21 +128,21 @@ object CursorState {
    * I've not thought about this too hard, but I think it probably satisfies enough laws to be reasonable.
    * See http://en.wikibooks.org/wiki/Haskell/MonadPlus#The_MonadPlus_laws
    */
-  implicit val cursorStateMonadPlus: MonadPlus[CursorState] = new MonadPlus[CursorState] {
+  implicit def cursorStateMonadPlus[J]: MonadPlus[({type λ[α]=CursorState[J, α]})#λ] =
+    new MonadPlus[({type λ[α]=CursorState[J, α]})#λ] {
 
-    def plus[A](a: CursorState[A], b: => CursorState[A]) = orElse(a, b)
+      def plus[A](a: CursorState[J, A], b: => CursorState[J, A]) = orElse(a, b)
 
-    def empty[A] = CursorState(_ => None)
+      def empty[A] = CursorState(_ => None)
 
-    def point[A](a: => A) = CursorState(cursor => Some(cursor, a))
+      def point[A](a: => A) = CursorState(cursor => Some(cursor, a))
 
-    def bind[A, B](fa: CursorState[A])(f: A => CursorState[B]) =
-      CursorState { cursor =>
-        fa(cursor) flatMap {
-          case (c1, a) => f(a)(c1)
+      def bind[A, B](fa: CursorState[J, A])(f: A => CursorState[J, B]) =
+        CursorState { cursor =>
+          fa(cursor) flatMap {
+            case (c1, a) => f(a)(c1)
+          }
         }
-      }
-  }
+    }
 
 }
-*/
