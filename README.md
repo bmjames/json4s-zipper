@@ -1,45 +1,33 @@
 json4s-zipper
 =============
 
-This is an experimental [zipper][1] library for the [json4s][2] AST.
+This is an experimental [zipper][1] library for the [json4s][2] AST. It is designed to be easy to make compatible with
+the other JSON libraries, by implementing the `JsonLike` typeclass.
 
-The goal of this library is to implement purely functional modifications to immutable JSON structures.
+The goals of this library are twofold:
+  * To implement purely functional modifications to immutable JSON structures;
+  * To support writing functions that are reusable with various JSON libraries, including ones not yet in existence.
 
 ## Examples
 
-This library depends on json4s-core, not on any of the json4s parsing libraries. To follow these examples, you'll need
-a project that depends on `json4s-native` or `json4s-jackson`. (Or, you'll need to construct the JSON example by hand
-using the AST.)
-
-The tests for json4s-zipper use the native parser, so if you have SBT installed, and a copy of the source, you can run
-`sbt test:console` to try these examples.
-
-To start with, here is some JSON, parsed into the `JValue` AST.
+To start with, here is some JSON, parsed into the `JValue` AST from json4s. (You can start a REPL in which to follow
+these examples by running `sbt "project test" test:console` from the root of this source tree.)
 
     import org.json4s.native.JsonMethods._
     
     val json = parse("""{"soups":["goulash","gumbo","minestrone"]}""")
 
+### Cursor API (quite stable)
 
-### XPath-style syntax
+This is the core zipper data type upon which the other APIs are based. It's a little verbose, but you can use this
+API directly. Most operations result in an `Option[Cursor[_]]`, as they may fail (e.g. if you use `field`, but the
+cursor is not currently on an object).
 
-This library has support for modifying elements of a JSON structure using an xpath-like syntax.
-
+    import com.gu.json.json4s._
     import com.gu.json.syntax._
-    import org.json4s.JsonAST._
+    import org.json4s.JString
 
-    // Append the string " is tasty!" to each string in the array within the field "soups"
-    val tastySoups = json.mod ("soups" \ *) { case JString(s) => JString(s + " is tasty!") }
-    
-    println(compact(render(tastySoups)))
-    // {"soups":["goulash is tasty!","gumbo is tasty!","minestrone is tasty!"]}
-
-### Basic Cursor API
-
-It's a little verbose, but you can use the `JCursor` API directly. Most operations result in an `Option[JCursor]`, as
-they may fail (e.g. if you use `field` when the focus is on a `JArray`).
-
-    val cursor = json.cursor // Create a cursor focusing on the root of the `JValue`
+    val cursor = json.cursor // A cursor focusing on the root of the JSON object
 
     val updatedCursor = for {
       a <- cursor.field("soups")         // Go to field "soups"
@@ -49,34 +37,47 @@ they may fail (e.g. if you use `field` when the focus is on a `JArray`).
     for (c <- updatedCursor) println(compact(render(c.toJson)))
     // {"soups":["borscht","goulash","gumbo","minestrone"]}
 
-### Lenses
+### XPath-style syntax (quite experimental)
+
+This library supports modification of a JSON structure using an xpath-like syntax.
+
+    // Append the string " is tasty!" to each string in the array within the field "soups"
+    val tastySoups = json.mod ("soups" \ *) { case JString(s) => JString(s + " is tasty!") }
+    
+    println(compact(render(tastySoups)))
+    // {"soups":["goulash is tasty!","gumbo is tasty!","minestrone is tasty!"]}
+
+The XPath-like syntax is implemented using the `CursorArrow` API. See
+[CursorArrowExamples](test/src/test/scala/com/gu/json/CursorArrowExamples.scala) for examples of using `CursorArrow`
+directly.
+
+### Lenses (quite stable)
 
 Lenses enable bidirectional transformations on data structures; i.e. the ability to query and update a *view* of the
 structure, with modifications propagating back as changes to the original structure.
 
-This library implements Scalaz partial lenses for `JValue` structures. The get and putback operations are implemented
-using the cursor API, but lenses provide a more composable API, with a whole host of lens-related operations for free.
+This library implements Scalaz partial lenses for any data type having a `JsonLike` typeclass instance. The get and
+putback operations are implemented using zippers.
 
-The partiality of the lenses is a result of the potential absence of expected elements in the `JValue` structure. Get
-and set operations return an `Option`, and modify operations which fail will return the original structure unmodified.
+The partiality of the lenses is a result of the potential absence of expected elements in the JSON structure. `get`
+and `set` operations return an `Option`, and `mod` operations which fail will return the original structure unmodified.
 
     import com.gu.json.Lenses._
 
     // A partial lens focusing on the string value of the 2nd element of field "soups"
-    val pLens = field("soups") >=> elem(1) >=> strVal
+    val firstSoup = field("soups") >=> elem(1) >=> strVal
 
     // The lens can be used simply to view the value at that location
-    pLens get json
+    firstSoup.get(json)
     // Some(gumbo)
 
     // The lens can also be used to transform the value
-    val updatedJson = pLens mod ("shellfish " + _, json)
+    val updatedJson = firstSoup.mod("shellfish " + _, json)
 
     println(compact(render(updatedJson)))
     // {"soups":["goulash","shellfish gumbo","minestrone"]}
 
-See [LensExamples][3] for more examples.
+See [LensExamples](test/src/test/scala/com/gu/json/LensExamples.scala) for more examples.
 
 [1]: http://en.wikipedia.org/wiki/Zipper_(data_structure)
 [2]: http://json4s.org/
-[3]: https://github.com/bmjames/json4s-zipper/blob/master/src/test/scala/com/gu/json/LensExamples.scala

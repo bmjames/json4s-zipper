@@ -156,7 +156,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
 
     // modify with a PartialFunction
 
-    json.modp ("assets" \ * \ "file") { case JString(s) => JString("http://example.com/" + s) } should be (
+    json.modp("assets" \ * \ "file") { case JString(s) => JString("http://example.com/" + s) } should be (
       parse("""
         {
           "type":"image",
@@ -177,7 +177,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
     
     // delete
     
-    json delete "assets" \ * \ "type" should be (parse("""
+    json.delete("assets" \ * \ "type") should be (parse("""
       {
         "type":"image",
         "assets":[
