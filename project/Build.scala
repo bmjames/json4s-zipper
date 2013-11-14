@@ -14,7 +14,7 @@ object Build extends Build {
 
   val scalazVersion = "7.1.0-M2"
   val scalacheckVersion = "1.11.0"
-  val json4sVersion = "3.2.4"
+  val json4sVersion = "3.2.5"
 
   val core = Project("core", file("core"))
     .settings(commonSettings ++ publishSettings: _*)

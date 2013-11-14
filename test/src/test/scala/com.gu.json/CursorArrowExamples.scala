@@ -79,15 +79,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
     // Delete any element in "assets" that has a field named "caption"
     val updated = json run field("assets") >=> eachElem(try_(field("caption") *> setNothing))
 
-//    The implementation of noNulls is broken and does not remove JNothing from a JArray (as it is documented to do).
-//    So this test will fail, because setNothing leaves a JNothing (which becomes invisible when the JSON is rendered).
-//
-//    Hopefully this will pass once this patch makes it into a release of json4s:
-//
-//      https://github.com/json4s/json4s/pull/40
-
-    /*
-    updated map (_.noNulls) should be (\/-(parse(
+    updated.map(_.noNulls) should be (\/-(parse(
       """
       {
         "type":"image",
@@ -99,7 +91,6 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
         ]
       }
       """)))
-      */
 
   }
 
