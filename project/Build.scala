@@ -41,10 +41,12 @@ object Build extends Build {
 
   val test = Project("test", file("test"))
     .dependsOn(core, json4s)
-    .settings(libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-      "org.json4s" %% "json4s-native" % json4sVersion % "test"
-    ))
+    .settings(
+      publishArtifact := false,
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+        "org.json4s" %% "json4s-native" % json4sVersion % "test"
+      ))
 
   def publishSettings = Seq(
     publishArtifact := true,
