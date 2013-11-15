@@ -65,6 +65,9 @@ object CursorArrows {
 
   def prepend[J](elem: J): CursorArrow[J] = withFailure(_.prepend(elem), "prepend(" + elem + ")")
 
+  def insertField[J](name: String, value: J): CursorArrow[J] =
+    withFailure(_.insertField(name, value), s"insertField($value)")
+
   def mod[J](f: J => J) = CursorArrow[J] { cursor => \/-(cursor.withFocus(f)) }
   
   def transform[J](pfn: PartialFunction[J, J]) = CursorArrow[J] { cursor => \/-(cursor.transform(pfn)) }
