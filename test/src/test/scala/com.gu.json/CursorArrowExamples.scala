@@ -77,7 +77,7 @@ class CursorArrowExamples extends FunSuite with ShouldMatchers {
   test("Guard an action using *>") {
 
     // Delete any element in "assets" that has a field named "caption"
-    val updated = json run field("assets") >=> eachElem(try_(field("caption") *> setNothing))
+    val updated = json run field("assets") >=> eachElem(try_(field("caption") *> replace(JNothing)))
 
     updated.map(_.noNulls) should be (\/-(parse(
       """

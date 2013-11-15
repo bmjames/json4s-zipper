@@ -30,10 +30,6 @@ case class Cursor[J](focus: J, path: Path[J])(implicit J: JsonLike[J]) {
   def withFocusF[F[_] : Functor](f: J => F[J]): F[Cursor[J]] =
     Functor[F].map(f(focus))(replace)
 
-  /** Replace the value at the focus with JNothing */
-  def setNothing: Cursor[J] =
-    replace(J.nothing)
-
   /** Delete the value at the focus, and move up one level */
   def deleteGoUp: Option[Cursor[J]] =
     condOpt(path) {

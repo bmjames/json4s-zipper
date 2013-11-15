@@ -7,7 +7,6 @@ import com.gu.json.JsonLike
 trait JsonLikeInstances {
 
   implicit val json4sJsonLike: JsonLike[JValue] = new JsonLike[JValue] {
-    val nothing = JNothing
     def array(elems: Seq[JValue]) = JArray(elems.toList)
     def obj(fields: Seq[(String, JValue)]) = JObject(fields.toList)
     def string(s: String) = JString(s)

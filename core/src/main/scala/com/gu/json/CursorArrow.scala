@@ -71,8 +71,6 @@ object CursorArrows {
 
   def deleteGoUp[J]: CursorArrow[J] = withFailure(_.deleteGoUp, "deleteGoUp")
 
-  def setNothing[J](implicit J: JsonLike[J]): CursorArrow[J] = replace(J.nothing)
-
   def eachElem[J](that: CursorArrow[J])(implicit J: JsonLike[J]) = CursorArrow[J] { case cursor @ Cursor(focus, p) =>
     J.asArray(focus) match {
       case Some(elems) =>

@@ -3,7 +3,6 @@ package com.gu.json
 /** Typeclass for a data structure representing an AST for JSON */
 trait JsonLike[J] {
 
-  def nothing: J
   def array(elems: Seq[J]): J
   def obj(fields: Seq[(String, J)]): J
   def string(s: String): J
@@ -25,7 +24,6 @@ object JsonLike {
 }
 
 object Json {
-  def nothing[J : JsonLike]: J = JsonLike[J].nothing
   def array[J : JsonLike](elems: Seq[J]): J = JsonLike[J].array(elems)
   def obj[J : JsonLike](fields: Seq[(String, J)]): J = JsonLike[J].obj(fields)
   def string[J : JsonLike](s: String): J = JsonLike[J].string(s)
