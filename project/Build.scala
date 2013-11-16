@@ -15,6 +15,7 @@ object Build extends Build {
   val scalazVersion = "7.1.0-M2"
   val scalacheckVersion = "1.11.0"
   val json4sVersion = "3.2.5"
+  val playVersion = "2.2.1"
 
   val core = Project("core", file("core"))
     .settings(commonSettings ++ publishSettings: _*)
@@ -36,6 +37,17 @@ object Build extends Build {
       name := "json-zipper-json4s",
       libraryDependencies ++= Seq(
         "org.json4s" %% "json4s-core" % json4sVersion,
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test"
+      ))
+
+  val play = Project("play", file("play"))
+    .dependsOn(core, scalacheckBinding)
+    .settings(commonSettings ++ publishSettings: _*)
+    .settings(
+      name := "json-zipper-play",
+      resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
+      libraryDependencies ++= Seq(
+        "com.typesafe.play" %% "play-json" % playVersion,
         "org.scalacheck" %% "scalacheck" % scalacheckVersion % "test"
       ))
 
