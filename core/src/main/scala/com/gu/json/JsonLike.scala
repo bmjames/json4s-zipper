@@ -23,7 +23,7 @@ object JsonLike {
   def apply[J](implicit ev: JsonLike[J]): JsonLike[J] = ev
 }
 
-object Json {
+object J {
   def array[J : JsonLike](elems: Seq[J]): J = JsonLike[J].array(elems)
   def obj[J : JsonLike](fields: Seq[(String, J)]): J = JsonLike[J].obj(fields)
   def string[J : JsonLike](s: String): J = JsonLike[J].string(s)

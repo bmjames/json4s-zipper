@@ -52,7 +52,7 @@ object Build extends Build {
       ))
 
   val test = Project("test", file("test"))
-    .dependsOn(core, json4s)
+    .dependsOn(core, json4s, play)
     .settings(
       publishArtifact := false,
       libraryDependencies ++= Seq(

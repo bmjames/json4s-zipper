@@ -1,12 +1,12 @@
 package com.gu.json.play
 
 import scala.PartialFunction._
-import play.api.libs.json._
+import _root_.play.api.libs.json._
 import com.gu.json.JsonLike
 
 trait JsonLikeInstances {
 
-  implicit val json4sJsonLike: JsonLike[JsValue] = new JsonLike[JsValue] {
+  implicit val playJsonLike: JsonLike[JsValue] = new JsonLike[JsValue] {
     def array(elems: Seq[JsValue]) = JsArray(elems)
     def obj(fields: Seq[(String, JsValue)]) = JsObject(fields)
     def string(s: String) = JsString(s)
