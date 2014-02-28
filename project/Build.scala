@@ -12,7 +12,7 @@ object Build extends Build {
     scalacOptions ++= Seq("-feature", "-deprecation", "-language:higherKinds", "-Xfatal-warnings")
   )
 
-  val scalazVersion = "7.1.0-M2"
+  val scalazVersion = "7.1.0-M3"
   val scalacheckVersion = "1.11.0"
   val json4sVersion = "3.2.5"
   val playVersion = "2.2.1"
