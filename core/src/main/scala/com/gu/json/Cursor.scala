@@ -127,6 +127,9 @@ case class Cursor[J](focus: J, path: Path[J])(implicit J: JsonLike[J]) {
   def insertField(name: String, value: J): Option[Cursor[J]] =
     J.asObj(focus) map (fields => Cursor(value, InObject(name, Nil, fields) :: path))
 
+  def insertOrReplaceField(name: String, value: J): Option[Cursor[J]] =
+    field(name).map(_.replace(value)) orElse insertField(name, value)
+
   /** Move the focus to the named field, at the same level as the current focus in an object */
   def sibling(name: String): Option[Cursor[J]] =
     path match {
