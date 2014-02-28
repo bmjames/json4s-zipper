@@ -3,7 +3,7 @@ package com.gu.json
 import scala.annotation.tailrec
 import scala.PartialFunction._
 
-import scalaz.{Endomorphic, EphemeralStream, Functor}
+import scalaz.{Endomorphic, Functor}
 import scalaz.std.option._
 import scalaz.syntax.monoid._
 
@@ -79,15 +79,13 @@ case class Cursor[J](focus: J, path: Path[J])(implicit J: JsonLike[J]) {
   def rightN(n: Int): Option[Cursor[J]] =
     endoKleisli[Option, Cursor[J]](_.right).multiply(n).run(this)
 
-  import EphemeralStream._
-
   /** Stream of cursors resulting from moving left in an array */
-  final def lefts: EphemeralStream[Cursor[J]] =
-    left.fold(emptyEphemeralStream[Cursor[J]])(cursor => cons(cursor, cursor.lefts))
+  final def lefts: Stream[Cursor[J]] =
+    left.fold(Stream.empty[Cursor[J]])(cursor => Stream.cons(cursor, cursor.lefts))
 
   /** Stream of cursors resulting from moving right in an array */
-  final def rights: EphemeralStream[Cursor[J]] =
-    right.fold(emptyEphemeralStream[Cursor[J]])(cursor => cons(cursor, cursor.rights))
+  final def rights: Stream[Cursor[J]] =
+    right.fold(Stream.empty[Cursor[J]])(cursor => Stream.cons(cursor, cursor.rights))
 
   /** Find an array element to the left of the focus matching a predicate */
   def findLeft(pfn: PartialFunction[J, Boolean]): Option[Cursor[J]] =
