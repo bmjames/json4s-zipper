@@ -47,6 +47,12 @@ trait JValueSyntax {
     def bigIntValue: Option[BigInt] =
       Lenses.intVal.get(value)
 
+    def boolValue: Option[Boolean] =
+      Lenses.boolVal.get(value)
+
+    def doubleValue: Option[Double] =
+      Lenses.doubleVal.get(value)
+
   }
 
 }
