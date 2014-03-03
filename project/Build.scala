@@ -8,7 +8,7 @@ object Build extends Build {
   val commonSettings = Seq(
     organization := "com.gu",
     scalaVersion := "2.10.3",
-    version      := "0.1-SNAPSHOT",
+    version      := "0.1",
     scalacOptions ++= Seq("-feature", "-deprecation", "-language:higherKinds", "-Xfatal-warnings")
   )
 
