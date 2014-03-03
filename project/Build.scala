@@ -14,7 +14,7 @@ object Build extends Build {
 
   val scalazVersion = "7.1.0-M3"
   val scalacheckVersion = "1.11.0"
-  val json4sVersion = "3.2.5"
+  val json4sVersion = "3.2.6"
   val playVersion = "2.2.1"
 
   val core = Project("core", file("core"))
