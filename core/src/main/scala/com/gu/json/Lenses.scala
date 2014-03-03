@@ -37,6 +37,10 @@ object Lenses {
     J.asObj(j) map (fs => Store(J.obj, fs))
   }
 
+  def fieldMap[J](implicit J: JsonLike[J]): J@?> Map[String, J] = PLens { j =>
+    J.asObj(j).map (fs => Store(m => J.obj(m.toList), fs.toMap))
+  }
+
 //  def mkPLensP[A](pfn: PartialFunction[JValue, Store[A, JValue]]): JValue @?> A =
 //    PLens(pfn.lift)
 
