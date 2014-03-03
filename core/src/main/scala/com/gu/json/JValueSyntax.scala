@@ -41,16 +41,16 @@ trait JValueSyntax {
     def runDefault(arrow: CursorArrow[J]): J =
       run(arrow) getOrElse value
 
-    def stringValue: Option[String] =
+    def asString: Option[String] =
       Lenses.strVal.get(value)
 
-    def bigIntValue: Option[BigInt] =
+    def asBigInt: Option[BigInt] =
       Lenses.intVal.get(value)
 
-    def boolValue: Option[Boolean] =
+    def asBoolean: Option[Boolean] =
       Lenses.boolVal.get(value)
 
-    def doubleValue: Option[Double] =
+    def asDouble: Option[Double] =
       Lenses.doubleVal.get(value)
 
   }
