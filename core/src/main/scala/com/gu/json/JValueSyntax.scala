@@ -53,6 +53,12 @@ trait JValueSyntax {
     def asDouble: Option[Double] =
       Lenses.doubleVal.get(value)
 
+    def asList: Option[List[J]] =
+      Lenses.elems.get(value)
+
+    def asMap: Option[Map[String, J]] =
+      Lenses.fieldMap.get(value)
+
   }
 
 }
