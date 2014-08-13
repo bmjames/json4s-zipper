@@ -7,15 +7,17 @@ object Build extends Build {
 
   val commonSettings = Seq(
     organization := "com.gu",
-    scalaVersion := "2.10.3",
+    scalaVersion := "2.10.4",
+    crossScalaVersions := Seq("2.10.4", "2.11.2"),
     version      := "0.2-SNAPSHOT",
     scalacOptions ++= Seq("-feature", "-deprecation", "-language:higherKinds", "-Xfatal-warnings")
   )
 
-  val scalazVersion = "7.1.0-M3"
+  val scalazVersion = "7.1.0"
   val scalacheckVersion = "1.11.0"
-  val json4sVersion = "3.2.6"
-  val playVersion = "2.2.1"
+  val scalatestVersion = "2.2.1"
+  val json4sVersion = "3.2.10"
+  val playVersion = "2.3.3"
 
   val core = Project("core", file("core"))
     .settings(commonSettings ++ publishSettings: _*)
@@ -56,9 +58,13 @@ object Build extends Build {
     .settings(
       publishArtifact := false,
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+        "org.scalatest" %% "scalatest" % scalatestVersion % "test",
         "org.json4s" %% "json4s-native" % json4sVersion % "test"
       ))
+
+  val root = Project("root", file("."))
+    .settings(commonSettings: _*)
+    .aggregate(core, json4s, play, scalacheckBinding, test)
 
   def publishSettings = Seq(
     publishArtifact := true,
