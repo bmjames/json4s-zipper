@@ -1,12 +1,26 @@
 json4s-zipper
 =============
 
-This is an experimental [zipper][1] library for the [json4s][2] AST. It is designed to be easy to make compatible with
+This is an experimental [zipper][1] library for the [json4s][2] and [Play JSON][3] ASTs. It is designed to be easy to make compatible with
 the other JSON libraries, by implementing the `JsonLike` typeclass.
 
 The goals of this library are twofold:
   * To implement purely functional modifications to immutable JSON structures;
   * To support writing functions that are reusable with various JSON libraries, including ones not yet in existence.
+
+## How to get it
+
+To use with json4s (3.2.x):
+
+    libraryDependencies += "com.gu" %% "json-zipper-core" % "0.2"
+
+    libraryDependencies += "com.gu" %% "json-zipper-json4s" % "0.2"
+
+To use with Play (2.3.x):
+
+    libraryDependencies += "com.gu" %% "json-zipper-core" % "0.2"
+
+    libraryDependencies += "com.gu" %% "json-zipper-play" % "0.2"
 
 ## Examples
 
@@ -81,3 +95,4 @@ See [LensExamples](test/src/test/scala/com/gu/json/LensExamples.scala) for more 
 
 [1]: http://en.wikipedia.org/wiki/Zipper_(data_structure)
 [2]: http://json4s.org/
+[3]: https://www.playframework.com/documentation/2.3.x/ScalaJson
