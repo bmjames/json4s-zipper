@@ -6,22 +6,33 @@ import com.gu.json.JsonLike
 
 class ArbitraryInstances[J](implicit J: JsonLike[J]) {
 
-  implicit def json: Arbitrary[J] = Arbitrary(Gen.oneOf(obj, array, string, int, double, bool))
+  implicit def json: Arbitrary[J] = Arbitrary(Gen.sized(genJson))
 
-  // FIXME to avoid a SOE from generator recursion, arrays won't contain objects
-  // FIXME also, making these lists much longer causes a SOE
-  private def leaf: Gen[J] = Gen.oneOf(string, int, double, bool)
-  def array: Gen[J] = Gen.listOfN(5, leaf).map(J.array(_))
+  def genArray(size: Int): Gen[J] =
+    for {
+      n  <- Gen.choose(size / 3, size / 2)
+      cs <- Gen.listOfN(n, genJson(n / 2))
+    } yield J.array(cs)
 
-  val obj: Gen[J] = Gen.listOfN(5, arbitrary[(String, J)]).map(J.obj(_))
+  def genObj(size: Int): Gen[J] =
+    for {
+      n  <- Gen.choose(size / 3, size / 2)
+      ks <- Gen.listOfN(n, arbitrary[String])
+      vs <- Gen.listOfN(n, genJson(n / 2))
+    } yield J.obj(ks zip vs)
 
-  val string: Gen[J] = arbitrary[String].map(J.string(_))
+  def genJson(size: Int): Gen[J] =
+    if (size <= 0) genLeaf else Gen.oneOf(genLeaf, genObj(size), genArray(size))
 
-  val int: Gen[J] = arbitrary[BigInt].map(J.int(_))
+  def genLeaf: Gen[J] = Gen.oneOf(genString, genInt, genDouble, genBool)
 
-  val double: Gen[J] = arbitrary[Double].map(J.double(_))
+  val genString: Gen[J] = arbitrary[String].map(J.string(_))
 
-  val bool: Gen[J] = arbitrary[Boolean].map(J.bool(_))
+  val genInt: Gen[J] = arbitrary[BigInt].map(J.int(_))
+
+  val genDouble: Gen[J] = arbitrary[Double].map(J.double(_))
+
+  val genBool: Gen[J] = arbitrary[Boolean].map(J.bool(_))
 
 }
 
