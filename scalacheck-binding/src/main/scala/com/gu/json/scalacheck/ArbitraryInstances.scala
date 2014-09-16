@@ -1,7 +1,11 @@
 package com.gu.json.scalacheck
 
+import scalaz.syntax.apply._
+import scalaz.scalacheck.ScalaCheckBinding._
+
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
+
 import com.gu.json.JsonLike
 
 class ArbitraryInstances[J](implicit J: JsonLike[J]) {
@@ -17,9 +21,9 @@ class ArbitraryInstances[J](implicit J: JsonLike[J]) {
   def genObj(size: Int): Gen[J] =
     for {
       n  <- Gen.choose(size / 3, size / 2)
-      ks <- Gen.listOfN(n, arbitrary[String])
-      vs <- Gen.listOfN(n, genJson(n / 2))
-    } yield J.obj(ks zip vs)
+      genField = arbitrary[String].tuple(genJson(n / 2))
+      fs <- Gen.listOfN(n, genField)
+    } yield J.obj(fs)
 
   def genJson(size: Int): Gen[J] =
     if (size <= 0) genLeaf else Gen.oneOf(genLeaf, genObj(size), genArray(size))

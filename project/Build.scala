@@ -74,7 +74,10 @@ object Build extends Build {
     .settings(
       name := "json-zipper-scalacheck-binding",
       description := "JSON Zipper ScalaCheck binding",
-      libraryDependencies += "org.scalacheck" %% "scalacheck" % scalacheckVersion
+      libraryDependencies ++= Seq(
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion,
+        "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion
+      )
     )
 
   val json4s = Project("json4s", file("json4s"))
