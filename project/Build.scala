@@ -10,7 +10,7 @@ import com.typesafe.sbt.pgp._
 object Build extends Build {
 
   val commonSettings = Seq(
-    organization := "com.gu",
+    organization := "net.bmjames",
     scalaVersion := "2.10.4",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
     scalacOptions ++= Seq("-feature", "-deprecation", "-language:higherKinds", "-Xfatal-warnings")

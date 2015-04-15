@@ -1,11 +1,11 @@
-package com.gu.json
+package net.bmjames.json
 
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 
 import org.json4s.JsonAST._
-import com.gu.json.Cursor.InArray
-import com.gu.json.json4s._
+import net.bmjames.json.Cursor.InArray
+import net.bmjames.json.json4s._
 
 class CursorTest extends FunSuite with ShouldMatchers {
 

@@ -1,9 +1,9 @@
+import net.bmjames.json.scalacheck.ArbitraryInstances
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 import play.api.libs.json.JsValue
-import com.gu.json.scalacheck.ArbitraryInstances
-import com.gu.json.JsonLikeLaws
-import com.gu.json.play._
+import net.bmjames.json.JsonLikeLaws
+import net.bmjames.json.play._
 
 object JsonLikeSpec extends Properties("JsonLike[JsValue]") {
 

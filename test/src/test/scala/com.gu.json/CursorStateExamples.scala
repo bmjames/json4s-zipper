@@ -1,4 +1,4 @@
-package com.gu.json
+package net.bmjames.json
 
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSuite
@@ -8,7 +8,7 @@ import org.json4s.native.JsonMethods._
 import scalaz.std.option._
 import scalaz.syntax.monadPlus._
 
-import com.gu.json.json4s._
+import net.bmjames.json.json4s._
 import CursorState._
 import JValueSyntax._
 

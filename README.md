@@ -12,15 +12,15 @@ The goals of this library are twofold:
 
 To use with json4s (3.2.x):
 
-    libraryDependencies += "com.gu" %% "json-zipper-core" % "0.2"
+    libraryDependencies += "net.bmjames" %% "json-zipper-core" % "0.2"
 
-    libraryDependencies += "com.gu" %% "json-zipper-json4s" % "0.2"
+    libraryDependencies += "net.bmjames" %% "json-zipper-json4s" % "0.2"
 
 To use with Play (2.3.x):
 
-    libraryDependencies += "com.gu" %% "json-zipper-core" % "0.2"
+    libraryDependencies += "net.bmjames" %% "json-zipper-core" % "0.2"
 
-    libraryDependencies += "com.gu" %% "json-zipper-play" % "0.2"
+    libraryDependencies += "net.bmjames" %% "json-zipper-play" % "0.2"
 
 ## Examples
 
@@ -37,8 +37,8 @@ This is the core zipper data type upon which the other APIs are based. It's a li
 API directly. Most operations result in an `Option[Cursor[_]]`, as they may fail (e.g. if you use `field`, but the
 cursor is not currently on an object).
 
-    import com.gu.json.json4s._
-    import com.gu.json.syntax._
+    import net.bmjames.json.json4s._
+    import net.bmjames.json.syntax._
     import org.json4s.JString
 
     val cursor = json.cursor // A cursor focusing on the root of the JSON object
@@ -76,7 +76,7 @@ putback operations are implemented using zippers.
 The partiality of the lenses is a result of the potential absence of expected elements in the JSON structure. `get`
 and `set` operations return an `Option`, and `mod` operations which fail will return the original structure unmodified.
 
-    import com.gu.json.Lenses._
+    import net.bmjames.json.Lenses._
 
     // A partial lens focusing on the string value of the 2nd element of field "soups"
     val firstSoup = field("soups") >=> elem(1) >=> strVal
