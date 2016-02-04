@@ -91,7 +91,7 @@ and `set` operations return an `Option`, and `mod` operations which fail will re
     println(compact(render(updatedJson)))
     // {"soups":["goulash","shellfish gumbo","minestrone"]}
 
-See [LensExamples](test/src/test/scala/com/gu/json/LensExamples.scala) for more examples.
+See [LensExamples](test/src/test/scala/net/bmjames/json/LensExamples.scala) for more examples.
 
 [1]: http://en.wikipedia.org/wiki/Zipper_(data_structure)
 [2]: http://json4s.org/
